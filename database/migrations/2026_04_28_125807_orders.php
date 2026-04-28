@@ -29,7 +29,7 @@ return new class extends Migration
 
 
             $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
-            $table->foreignId('id_responsavel')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('responsible_id')->constrained('users')->cascadeOnDelete();
 
             $table->timestamps();
         });
