@@ -17,12 +17,12 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
 
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use  HasFactory, Notifiable, SoftDeletes;
 
     
     protected $fillable = [
         'name',
-        'last_name',
+        'lastname',
         'email',
         'password',
         'user_code',
