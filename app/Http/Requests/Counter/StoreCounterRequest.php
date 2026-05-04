@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Country;
+namespace App\Http\Requests\Counter;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;

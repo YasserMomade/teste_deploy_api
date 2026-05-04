@@ -35,6 +35,10 @@ Route::prefix('v1')->group(function(){
 
             Route::apiResource('countries', CountryController::class);
             Route::apiResource('counters',  CounterController::class);
+            
+            Route::apiResource('users', UserController::class);
+            Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
+                 ->name('users.reset-password');
         
            
         }); 

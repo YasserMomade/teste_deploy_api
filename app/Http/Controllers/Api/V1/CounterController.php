@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Counter\UpdateCounterRequest;
-use App\Http\Requests\Country\StoreCounterRequest;
+use App\Http\Requests\Counter\StoreCounterRequest;
 use App\Http\Resources\CounterResource;
 use App\Models\Counter;
 use App\Services\CounterService;
