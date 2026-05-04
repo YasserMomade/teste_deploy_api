@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('prices', function (Blueprint $table) {
             $table->id();
-            $table->decimal('price');
-            $table->decimal('weight');
-            $table->int('weight');
+            $table->decimal('amount', 10, 2);
+            $table->decimal('min_weight', 10, 3);
+            $table->decimal('max_weight', 10, 3);
+            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
             $table->timestamps();
         });
     }

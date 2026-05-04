@@ -12,7 +12,7 @@ use App\Http\Controllers\Controller;
 class ClientControler extends Controller
 {
 
-use ApiResponse;
+    use ApiResponse;
 
     protected $clientService;
 
