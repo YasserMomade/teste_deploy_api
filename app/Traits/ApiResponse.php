@@ -15,7 +15,7 @@ trait ApiResponse
             ], $status);
     }
 
-      protected function created(mixed $data = null, string $message = 'Resource created successfully'): JsonResponse
+    protected function created(mixed $data = null, string $message = 'Resource created successfully'): JsonResponse
     {
         return $this->success($data, $message, 201);
     }
