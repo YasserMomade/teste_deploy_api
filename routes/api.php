@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CounterController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\CountryController;
 use Illuminate\Http\Request;
@@ -33,7 +34,9 @@ Route::prefix('v1')->group(function(){
         Route::middleware('role:admin')->group(function () {
 
             Route::apiResource('countries', CountryController::class);
+            Route::apiResource('counters',  CounterController::class);
         
+           
         }); 
     });
 
