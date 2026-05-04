@@ -10,8 +10,7 @@ use App\Http\Controllers\Api\V1\ClientControler;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\PriceController;
-
-
+use App\Http\Controllers\api\v1\StoreController;
 
 Route::apiResource('/clients', ClientControler::class);
 
@@ -20,6 +19,7 @@ Route::apiResource('/orders', OrderController::class);
 Route::prefix('v1')->group(function(){
 
         Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
+
          ->middleware('throttle:5,1')
          ->name('setup.admin');
 
@@ -32,13 +32,14 @@ Route::prefix('v1')->group(function(){
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('/auth/me',     [AuthController::class, 'me'])->name('auth.me');
 
-
         
+
         // == So admin ==
         Route::middleware('role:admin')->group(function () {
 
             Route::apiResource('countries', CountryController::class);
             Route::apiResource('counters',  CounterController::class);
+            Route::apiResource('stores', StoreController::class);
             
             Route::apiResource('users', UserController::class);
             Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])

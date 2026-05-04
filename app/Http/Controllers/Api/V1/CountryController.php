@@ -49,17 +49,6 @@ class CountryController extends Controller
         return $this->success(new CountryResource($updated),  'Country updated successfully.');
     }
 
-    public function destroy(Country $country) 
-    {
-    
-        try{
-            $this->countryService->delete($country);
-
-           return $this->success(message: 'Country deleted successfully,');
-        }catch(\DomainException $e) {
-            return $this->error($e->getMessage(), 422);
-        }
-
-    }
+   
 
 }

@@ -6,6 +6,7 @@ enum RoleEnum: string
 {
     case Admin = 'admin';
     case Manager = 'Manager';
+    
 
 
     public function label(): string
