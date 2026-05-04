@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Counter;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+
 
 class CounterService
 {
@@ -33,11 +35,13 @@ class CounterService
     }
 
     public function delete(Counter $counter): void
-    {
-        if ($counter->users()->exists()) {
-            throw new \Exception('Cannot delete a counter that has users assigned.');
-        }
-
-        $counter->delete();
+{
+    if ($counter->users()->exists()) {
+        throw new ConflictHttpException(
+            'Cannot delete a counter that has users assigned.'
+        );
     }
+
+    $counter->delete();
+}
 }

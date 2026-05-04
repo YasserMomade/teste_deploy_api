@@ -103,7 +103,7 @@ class UserService
 
         do {
             $code = $prefix . '-' . strtoupper(Str::random(6));
-        } while (User::where('user_code', $code)->exists()); // withTrashed() REMOVIDO
+        } while (User::where('user_code', $code)->exists()); 
         
         return $code;
     }
