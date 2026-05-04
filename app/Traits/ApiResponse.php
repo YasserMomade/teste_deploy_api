@@ -1,31 +1,54 @@
-<?php 
+<?php
 
 namespace App\Traits;
 
-use Iluminate\Http\JsonResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 trait ApiResponse
 {
-    protected function success(mixed $data = null , string $message = 'Sucess', int $status = 200): JsonResponse
-    {
+    protected function success(
+        mixed $data = null,
+        string $message = 'Success',
+        int $status = 200
+    ): JsonResponse {
+
+        if ($data instanceof JsonResource) {
+            return $data
+                ->additional([
+                    'success' => true,
+                    'message' => $message,
+                ])
+                ->response()
+                ->setStatusCode($status);
+        }
+
         return response()->json([
-            'Sucess' => true, 
-            'message' => $message, 
+            'success' => true,
+            'message' => $message,
             'data' => $data,
-            ], $status);
+            'errors' => null,
+        ], $status);
     }
 
-    protected function created(mixed $data = null, string $message = 'Resource created successfully'): JsonResponse
-    {
+    protected function created(
+        mixed $data = null,
+        string $message = 'Resource created successfully'
+    ): JsonResponse {
         return $this->success($data, $message, 201);
     }
 
-      protected function error(string $message = 'Error', int $status = 400, mixed $errors = null): JsonResponse
-    {
+    protected function error(
+        string $message = 'Error',
+        int $status = 400,
+        mixed $errors = null
+    ): JsonResponse {
+
         return response()->json([
             'success' => false,
             'message' => $message,
-            'errors' => $errors,
+            'data' => null,
+            'errors' => $this->normalizeErrors($errors),
         ], $status);
     }
 
@@ -39,4 +62,23 @@ trait ApiResponse
         return $this->error($message, 403);
     }
 
+    /**
+     * Normaliza erros para formato consistente
+     */
+    private function normalizeErrors(mixed $errors): mixed
+    {
+        if (is_null($errors)) {
+            return null;
+        }
+
+        if ($errors instanceof \Illuminate\Support\MessageBag) {
+            return $errors->toArray();
+        }
+
+        if (is_object($errors) && method_exists($errors, 'errors')) {
+            return $errors->errors();
+        }
+
+        return $errors;
+    }
 }

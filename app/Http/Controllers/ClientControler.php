@@ -10,6 +10,9 @@ use App\Http\Requests\Client as ClientRequest;
 
 class ClientControler extends Controller
 {
+
+use ApiResponse;
+
     protected $clientService;
 
     public function __construct(ClientService $clientService)
