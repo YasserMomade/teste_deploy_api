@@ -6,8 +6,12 @@ use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\CountryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ClientControler;
-use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Api\V1\ClientControler;
+use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\PriceController;
+
+
 
 Route::apiResource('/clients', ClientControler::class);
 
@@ -45,3 +49,4 @@ Route::prefix('v1')->group(function(){
     });
 
 });
+
