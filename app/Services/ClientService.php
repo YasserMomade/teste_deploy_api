@@ -18,7 +18,7 @@ class ClientService
 
     public function getClientById(int $id): ?Client
     {
-        return Client::find($id);
+        return Client::findOrFail($id);
     }
 
     public function updateClient(Client $client, array $data): Client
@@ -27,8 +27,8 @@ class ClientService
         return $client;
     }
 
-    public function deleteClient(Client $client): void
+    public function deleteClient(string $id): void
     {
-        $client->delete();
+        $client->destroy($id);
     }
 }
