@@ -7,8 +7,8 @@ use App\Http\Requests\Country\StoreCountryRequest;
 use App\Http\Requests\Country\UpdateCountryRequest;
 use App\Http\Resources\CounterResource;
 use App\Http\Resources\CountryResource;
-use App\Models\Country;
 use App\Services\CountryService;
+use App\Models\Country;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,7 +57,7 @@ class CountryController extends Controller
 
            return $this->success(message: 'Country deleted successfully,');
         }catch(\DomainException $e) {
-            return $this->error($e->getMessage());
+            return $this->error($e->getMessage(), 422);
         }
 
     }
