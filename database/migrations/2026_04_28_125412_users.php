@@ -20,9 +20,8 @@ return new class extends Migration
             $table->string('phone');
             $table->string('email')->unique();
             $table->string('password');
-            $table->softDeletes();
             
-            $table->foreignId('counter_id')->constrained('counters')->cascadeOnDelete();
+            $table->foreignId('counter_id')->nullable()->constrained('counters')->nullOnDelete();
 
             $table->timestamps();
         });

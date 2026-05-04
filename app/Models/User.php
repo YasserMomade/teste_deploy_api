@@ -2,50 +2,57 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
+use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use App\Models\Counter;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
+
 class User extends Authenticatable
 {
+    use HasApiTokens, HasFactory, Notifiable;
 
-    use  HasFactory, Notifiable, SoftDeletes;
-
-    
     protected $fillable = [
-        'name',
-        'lastname',
-        'email',
-        'password',
         'user_code',
         'role',
+        'name',
+        'lastname',
         'phone',
+        'email',
+        'password',
         'counter_id',
     ];
 
-     protected $hidden = [
+    protected $hidden = [
         'password',
-        'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'password' => 'hashed',
+        'role' => RoleEnum::class,
+    ];
 
-     public function counter(): BelongsTo
+    public function counter(): BelongsTo
     {
         return $this->belongsTo(Counter::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === RoleEnum::Admin;
+    }
+
+    public function hasRole(string|RoleEnum $role): bool
+    {
+        $value = $role instanceof RoleEnum ? $role->value : $role;
+        return $this->role->value === $value;
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role->value, $roles, true);
     }
 }
