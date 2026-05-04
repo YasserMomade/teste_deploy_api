@@ -24,7 +24,7 @@ class Client extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'lastname' => 'required|string|min2|max:255',
+            'lastname' => 'required|string|min:2|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|unique:clients,email',
         ];
