@@ -8,8 +8,11 @@ use App\Services\OrderService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Order as OrderRequest;
 
+
 class OrderController extends Controller
 {
+
+use ApiResponse;
     protected $orderService;
 
     public function __construct(OrderService $orderService)
