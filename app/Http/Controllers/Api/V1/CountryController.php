@@ -38,28 +38,20 @@ class CountryController extends Controller
         $country = $this->countryService->create($request->validated());
 
         return $this->created(
-            new CountryResource($country), 'Country created successfully.'
+            new CountryResource($country),
+            'Country created successfully.'
         );
+    }
+
+    public function show(Country $country): JsonResponse
+    {
+        return $this->success(new CountryResource($country));
     }
 
     public function update(UpdateCountryRequest $request, Country $country): JsonResponse
     {
-        $updated = $this->countryService->update($country ,$request->validated());
+        $updated = $this->countryService->update($country, $request->validated());
 
         return $this->success(new CountryResource($updated),  'Country updated successfully.');
     }
-
-    public function destroy(Country $country) 
-    {
-    
-        try{
-            $this->countryService->delete($country);
-
-           return $this->success(message: 'Country deleted successfully,');
-        }catch(\DomainException $e) {
-            return $this->error($e->getMessage(), 422);
-        }
-
-    }
-
 }
