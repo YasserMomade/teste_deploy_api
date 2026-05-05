@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->decimal('amountTo_pay');
-            $table->decimal('amount_paid');
-            $table->enum('payment_status', ['pendent', 'paid', 'faild']);
-            $table->enum('payment_method', ['card', 'cash']);
+
+            $table->decimal('amountTo_pay')->nullable();
+            $table->decimal('amount_paid')->nullable();
+            $table->integer('referencie');
+
+            $table->enum('payment_status', ['pendent', 'paid', 'faild'])->nullable();
+            $table->enum('payment_method', ['card', 'cash', 'undefined'])
+            ->default('undefined');
+
             $table->timestamps();
-            
-            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
         });
     }
 

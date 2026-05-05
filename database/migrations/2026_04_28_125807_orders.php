@@ -24,6 +24,11 @@ return new class extends Migration
         $table->decimal('declared_weight', 10, 2)->nullable();
         $table->softDeletes();
 
+        $table->foreignId('invoice_id')
+                ->nullable()
+                ->constrained('invoices')
+                ->nullOnDelete();
+                
         $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
         $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
         $table->foreignId('responsible_id')->constrained('users')->cascadeOnDelete();

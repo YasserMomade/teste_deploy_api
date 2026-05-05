@@ -19,6 +19,7 @@ class Order extends Model
         'declared_weight',
 	    'category_id',
         'responsible_id',
+        'invoice_id',
     ];
 
     public function client()
@@ -36,5 +37,10 @@ class Order extends Model
     public function responsible()
     {
         return $this->belongsTo(User::class, 'responsible_id');
+    }
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
     }
 }

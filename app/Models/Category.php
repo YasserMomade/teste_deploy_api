@@ -9,4 +9,9 @@ class Category extends Model
     protected $fillable = [
         'category',
     ];
+
+    public function prices()
+    {
+        return $this->hasMany(Price::class);
+    }
 }

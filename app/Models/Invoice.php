@@ -9,12 +9,14 @@ class Invoice extends Model
    protected $fillable = [
         'amountTo_pay',
         'amount_paid',
+        'referencie',
         'payment_status',
-        'payment_method',	 
-        'order_id',	 
+        'payment_method',
    ];
 
-   public function order() {
-    return $this->belongsTo(Order::Class);
+   public function orders()
+   {
+      return $this->hasMany(Order::class);
    }
+   
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\ClientControler;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\PriceController;
+use App\Http\Controllers\Api\V1\InvoiceController;
 
 
 
@@ -37,6 +38,9 @@ Route::prefix('v1')->group(function(){
         Route::apiResource('/categories', CategoryController::class);
 
         Route::apiResource('/prices', PriceController::class);
+
+        Route::apiResource('/invoice', InvoiceController::class);
+
 
         // == So admin ==
         Route::middleware('role:admin')->group(function () {

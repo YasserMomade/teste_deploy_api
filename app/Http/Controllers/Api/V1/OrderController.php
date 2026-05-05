@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\OrderService;
+use App\Services\InvoiceService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Order\StoreOrder;
 use App\Http\Controllers\Controller;
@@ -16,12 +17,17 @@ class OrderController extends Controller
 
 use ApiResponse;
     protected $orderService;
+    protected $invoiceService;
 
-    public function __construct(OrderService $orderService)
+
+    public function __construct(OrderService $orderService, InvoiceService $invoiceService)
     {
         $this->orderService = $orderService;
+        $this->invoiceService = $invoiceService;
+
     }   
 
+ 
     public function index() : JsonResponse
     {
         try {
@@ -37,7 +43,36 @@ use ApiResponse;
     {
         try {
             $order = $this->orderService->createOrder($request->validated());
-            return $this->created($order);
+           
+            $order->load(['category.prices']);
+
+            $weight = $order->weight;
+
+            $price = $order->category->prices->first()?->amount ?? 0;
+
+            $amountToPay = $weight * $price;
+
+            $reference = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+
+            $invoiceData = [
+                "amountTo_pay" => $amountToPay,
+                "amount_paid" => 0,
+                "referencie" => $reference,
+                "payment_status" => "pendent",
+                "payment_method" => "undefined"
+            ];
+
+            $invoice = $this->invoiceService->createInvoice($invoiceData);
+
+            $order->update([
+                'invoice_id' => $invoice->id
+            ]);
+
+            return $this->created([
+                'order' => $order,
+                'invoice' => $invoice
+            ]);
+
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
