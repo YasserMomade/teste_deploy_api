@@ -41,6 +41,11 @@ class StoreController extends Controller
         );
     }
 
+     public function show(Store $store): JsonResponse
+    {
+        return $this->success(new StoreResource($store));
+    }
+
     public function update(UpdateStoreRequest $request, Store $store): JsonResponse
     {
         $updated = $this->storeService->update($store, $request->validated());
