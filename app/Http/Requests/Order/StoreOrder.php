@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Order;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,10 +33,8 @@ class Order extends FormRequest
             'volume_number' => 'required|integer',
             'weight' => 'required|numeric',
             'declared_weight' => 'required|numeric',
-            'value' => 'required|numeric',
-            'payment_status' => 'required|string',
-            'payment_method' => 'required|string',
-            'responsible_id' => 'nullable|integer',
+            'category_id' => 'required|exists:categories,id',
+            'responsible_id' => 'nullable|exists:users,id',
         ];
     }
 }

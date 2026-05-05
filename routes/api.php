@@ -13,9 +13,7 @@ use App\Http\Controllers\Api\V1\PriceController;
 
 
 
-Route::apiResource('/clients', ClientControler::class);
 
-Route::apiResource('/orders', OrderController::class);
 
 Route::prefix('v1')->group(function(){
 
@@ -32,8 +30,14 @@ Route::prefix('v1')->group(function(){
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('/auth/me',     [AuthController::class, 'me'])->name('auth.me');
 
+        Route::apiResource('/clients', ClientControler::class);
 
-        
+        Route::apiResource('/orders', OrderController::class);
+
+        Route::apiResource('/categories', CategoryController::class);
+
+        Route::apiResource('/prices', PriceController::class);
+
         // == So admin ==
         Route::middleware('role:admin')->group(function () {
 

@@ -17,9 +17,7 @@ class Order extends Model
         'volume_number',
         'weight',
         'declared_weight',
-        'value',
-        'payment_status',
-        'payment_method',
+	    'category_id',
         'responsible_id',
     ];
 
