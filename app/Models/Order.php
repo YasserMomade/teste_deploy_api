@@ -17,14 +17,30 @@ class Order extends Model
         'volume_number',
         'weight',
         'declared_weight',
-        'value',
-        'payment_status',
-        'payment_method',
+	    'category_id',
         'responsible_id',
+        'invoice_id',
     ];
 
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+   
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+  
+    public function responsible()
+    {
+        return $this->belongsTo(User::class, 'responsible_id');
+    }
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
     }
 }

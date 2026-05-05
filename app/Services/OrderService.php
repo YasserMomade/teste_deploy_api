@@ -14,12 +14,18 @@ class OrderService
 
     public function getAllOrders()
     {
-        return Order::with('client')->get();
+        return Order::with([
+            'client',
+            'category',
+            'responsible',
+            'category.prices',
+            'invoice'
+        ])->get();
     }
 
     public function getOrderById(int $id): ?Order   
     {
-        return Order::whith('client')->findOrFail($id);
+        return Order::with('client')->findOrFail($id);
     }
 
     public function updateOrder(Order $order, array $data): Order
