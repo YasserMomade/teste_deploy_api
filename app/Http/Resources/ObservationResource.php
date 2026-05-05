@@ -14,7 +14,7 @@ class ObservationResource extends JsonResource
             'description' => $this->description,
             'level' => $this->level->value,
             'level_label' => $this->level->label(),
-            'shipment_id' => $this->shipment_id,
+            'order_id' => $this->order_id,
             'created_by' => [
                 'id' => $this->creator->id,
                 'name' => $this->creator->name,
