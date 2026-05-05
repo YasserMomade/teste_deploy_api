@@ -16,10 +16,10 @@ use App\Http\Controllers\Api\V1\PriceController;
 
 
 Route::prefix('v1')->group(function(){
-
-        Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
-         ->middleware('throttle:5,1')
-         ->name('setup.admin');
+    
+    Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
+     ->middleware('throttle:5,1')
+     ->name('setup.admin');
 
          Route::post('/auth/login', [AuthController::class, 'login'])
          ->middleware('throttle:10,1')

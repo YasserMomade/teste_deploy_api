@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\OrderService;
 use App\Traits\ApiResponse;
-use App\Http\Requests\Order as OrderRequest;
+use App\Http\Requests\Order\StoreOrder;
 use App\Http\Controllers\Controller;
 
 
@@ -33,7 +33,7 @@ use ApiResponse;
         }
     }
 
-    public function store(OrderRequest $request): JsonResponse
+    public function store(StoreOrder $request): JsonResponse
     {
         try {
             $order = $this->orderService->createOrder($request->validated());
@@ -56,7 +56,7 @@ use ApiResponse;
         }
     }
 
-    public function update(OrderRequest $request, int $id): JsonResponse
+    public function update(StoreOrder $request, int $id): JsonResponse
     {
         try {
             $order = $this->orderService->getOrderById($id);

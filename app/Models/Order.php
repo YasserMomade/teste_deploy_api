@@ -25,4 +25,16 @@ class Order extends Model
     {
         return $this->belongsTo(Client::class);
     }
+
+   
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+  
+    public function responsible()
+    {
+        return $this->belongsTo(User::class, 'responsible_id');
+    }
 }

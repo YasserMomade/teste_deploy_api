@@ -5,7 +5,7 @@ namespace App\Http\Requests\Order;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class Order extends FormRequest
+class StoreOrder extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

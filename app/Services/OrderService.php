@@ -14,7 +14,7 @@ class OrderService
 
     public function getAllOrders()
     {
-        return Order::with('client')->get();
+        return Order::with(['client', 'category', 'responsible'])->get();
     }
 
     public function getOrderById(int $id): ?Order   
