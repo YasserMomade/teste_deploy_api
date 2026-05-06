@@ -27,7 +27,7 @@ class AuditLogService
         return self::$currentUser;
     }
 
-    public function clearContext(): void
+    public static function clearContext(): void
     {
         self::$currentUser = null;
         self::$currentRequest = null;
@@ -63,7 +63,7 @@ class AuditLogService
     public function list(array $filters = []): LengthAwarePaginator
     {
         return AuditLog::query()
-            ->with('user:id', 'name', 'user_code')
+            ->with('user:id,name,user_code')
             ->when(
                 isset($filters['user_id']),
                 fn($q) => $q->byUser($filters['user_id'])
@@ -85,7 +85,7 @@ class AuditLogService
         return AuditLog::with('user:id,name,user_code')->findOrFail($id);
     }
 
-    private static function maskSensitiveFields(array $data): array
+      private static function maskSensitiveFields(array $data): array
     {
         foreach (self::MASKED_FIELDS as $field) {
             if (array_key_exists($field, $data)) {
