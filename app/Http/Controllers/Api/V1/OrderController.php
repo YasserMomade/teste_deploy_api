@@ -53,11 +53,11 @@ use ApiResponse;
             $amountToPay = $weight * $price;
 
             $reference = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-
+            
             $invoiceData = [
                 "amountTo_pay" => $amountToPay,
                 "amount_paid" => 0,
-                "referencie" => $reference,
+                "referencie" => 'REF-' . $reference,
                 "payment_status" => "pendent",
                 "payment_method" => "undefined"
             ];

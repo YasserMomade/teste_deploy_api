@@ -13,21 +13,12 @@ use App\Http\Controllers\api\v1\ObservationController;
 use App\Http\Controllers\Api\V1\PriceController;
 use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\api\v1\StoreController;
+use App\Http\Controllers\api\v1\StatusController;
 
-
-
-
-Route::prefix('v1')->group(function(){
-    
-    Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
-     ->middleware('throttle:5,1')
-     ->name('setup.admin');
 
 Route::prefix('v1')->group(function () {
 
     Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
-
-
         ->middleware('throttle:5,1')
         ->name('setup.admin');
 
@@ -51,6 +42,8 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('/invoice', InvoiceController::class);
 
+        Route::apiResource('/status', StatusController::class);
+
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');
             Route::post('/', [ObservationController::class, 'store'])->name('observations.store');
@@ -58,9 +51,6 @@ Route::prefix('v1')->group(function () {
             Route::put('/{observation}', [ObservationController::class, 'update'])->name('observations.update');
             Route::delete('/{observation}', [ObservationController::class, 'destroy'])->name('observations.destroy');
         });
-
-
-
 
         // == So admin ==
         Route::middleware('role:admin')->group(function () {
