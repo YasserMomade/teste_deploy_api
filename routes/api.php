@@ -17,17 +17,10 @@ use App\Http\Controllers\api\v1\StoreController;
 
 
 
-Route::prefix('v1')->group(function(){
-    
-    Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
-     ->middleware('throttle:5,1')
-     ->name('setup.admin');
 
 Route::prefix('v1')->group(function () {
 
     Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
-
-
         ->middleware('throttle:5,1')
         ->name('setup.admin');
 
@@ -58,9 +51,6 @@ Route::prefix('v1')->group(function () {
             Route::put('/{observation}', [ObservationController::class, 'update'])->name('observations.update');
             Route::delete('/{observation}', [ObservationController::class, 'destroy'])->name('observations.destroy');
         });
-
-
-
 
         // == So admin ==
         Route::middleware('role:admin')->group(function () {
