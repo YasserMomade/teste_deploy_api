@@ -2,23 +2,24 @@
 
 namespace App\Observers;
 
-use App\Models\AuditLog;
+
 use App\Models\User;
+use App\Services\AuditLogService;
 
 class UserObserver
 {
     public function created(User $user): void
     {
-        AuditLog::log('created', $user, [], $user->getAttributes());
+        AuditLogService::log('created', $user, [], $user->getAttributes());
     }
 
     public function updated(User $user): void
     {
-        AuditLog::log('updated', $user, $user->getOriginal(), $user->getChanges());
+        AuditLogService::log('updated', $user, $user->getOriginal(), $user->getChanges());
     }
 
     public function deleted(User $user) : void 
     {
-        AuditLog::log('deleted', $user, $user->getAttributes(), []);
+        AuditLogService::log('deleted', $user, $user->getAttributes(), []);
     }
 }
