@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Illuminate\Support\Collection;
 use Override;
+use Carbon\Carbon;
 
 class FinancialReportExport implements
     FromCollection,
@@ -25,15 +26,16 @@ class FinancialReportExport implements
     {
         return collect($this->data['orders'])->map(fn($order) => [
             $order->tracking,
-            $order->client->name ?? 'N/A',
-            $order->client->lastname ?? 'N/A',
-            $order->reception_date?->format('d/m/Y'),
+            $order['client']['name'] ?? 'N/A',
+            $order['client']['lastname'] ?? 'N/A',
+            Carbon::parse($order->reception_date)->format('d/m/Y'),
             $order->destination,
             $order->invoice?->amountTo_pay ?? 0,
-            $order->invoice_amount_paid ?? 0,
+            $order->invoice?->amount_paid,
             round(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice->amount_paid ?? 0), 2),
             $order->invoice?->payment_status ?? 'N/A',
             $order->invoice?->payment_method ?? 'N/A',
+            $order['invoice']['referencie'] ?? 'N/A',
             $order->responsible?->name ?? 'N/A'
         ]);
     }
@@ -43,7 +45,8 @@ class FinancialReportExport implements
     {
         return [
             'Tracking',
-            'Cliente',
+            'Nome',
+            'Apelido',
             'Data Recepção',
             'Destino',
             'Valor a Pagar',

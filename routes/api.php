@@ -74,6 +74,8 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:admin,manager')->prefix('reports')->group(function () {
 
             Route::get('/financial',   [ReportController::class, 'financial'])->name('reports.financial');
+            Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
+
         });
     });
 });

@@ -56,5 +56,28 @@ private function validateBaseFilters(Request $request): array
         ]);
 }
 
+ public function exportFinancial(Request $request): mixed
+    {
+        $filters = $this->validateFinancialFilters($request);
+        $format  = $request->input('format', 'excel');
+        $data    = $this->financialService->generate($filters);
+
+        return match($format) {
+            'pdf'   => $this->exportFinancialPdf($data, $filters),
+            default => Excel::download(
+                new FinancialReportExport($data),
+                'relatorio_financeiro_' . now()->format('Ymd_His') . '.xlsx'
+            ),
+        };
+    }
+    
+ private function exportFinancialPdf(array $data, array $filters): Response
+    {
+        $pdf = Pdf::loadView('reports.financial', array_merge($data, ['filters' => $filters]))
+                  ->setPaper('a4', 'landscape');
+
+        return $pdf->download('relatorio_financeiro_' . now()->format('Ymd_His') . '.pdf');
+    }
+
 
 }
