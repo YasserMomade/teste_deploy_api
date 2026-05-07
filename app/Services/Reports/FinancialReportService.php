@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Models\Order;
+use Illuminate\Support\Facades\DB;
 
 class FinancialReportService
 {
@@ -15,8 +16,8 @@ class FinancialReportService
             'invoice',
             'responsible:id,name,user_code'
         ])->get();
-
         return [
+
             'summary' => $this->buildSummary(clone $query),
             'by_payment_status' => $this->groupByPaymentStatus(clone $query),
             'by_payment_method' => $this->groupByPaymentMethod(clone $query),
@@ -77,16 +78,56 @@ class FinancialReportService
 
     public function groupByPaymentMethod($query): array
     {
-        //TODO:: implement groupByPaymentMethod
+        return (clone $query)->selectRaw('
+            invoices.payment_status as status,
+            COUNT(*) as total_orders,
+            SUM(invoices.amountTo_pay) as total_amount,
+            SUM(invoices.amount_paid) as total_paid
+        ')->groupBy('invoices.payment_status')->get()
+            ->map(fn($row) => [
+                'status' => $row->status,
+                'total_orders' => (int) $row->total_orders,
+                'total_amount' => round((float) $row->total_amount, 2),
+                'total_paid' => round((float) $row->total_paid, 2),
+            ])->toArray();
     }
 
     public function groupByPaymentStatus($query): array
     {
-        //TODO:: implement groupByPaymentStatus
+        return (clone $query)->selectRaw('
+                invoices.payment_method as method,
+                COUNT(*) as total_orders,
+                SUM(invoices.amount_paid) as total_collected
+            ')
+            ->groupBy('invoices.payment_method')
+            ->get()
+            ->map(fn($row) => [
+                'method' => $row->method,
+                'total_orders' => (int) $row->total_orders,
+                'total_collected' => round((float) $row->total_collected, 2),
+            ])
+            ->toArray();
     }
 
     public function getDailyTotals($query): array
     {
-        //TODO:: implement getDailyTotals
+        return (clone $query)->selectRaw('
+                DATE(orders.reception_date) as date,
+                COUNT(*) as total_orders,
+                SUM(invoices.amountTo_pay) as total_to_pay,
+                SUM(invoices.amount_paid) as total_paid,
+                SUM(orders.weight) as total_weight
+            ')
+            ->groupBy(DB::raw('DATE(orders.reception_date)'))
+            ->orderBy('date')
+            ->get()
+            ->map(fn($row) => [
+                'date' => $row->date,
+                'total_orders' => (int) $row->total_orders,
+                'total_to_pay' => round((float) $row->total_to_pay, 2),
+                'total_paid' => round((float) $row->total_paid, 2),
+                'total_weight' => round((float) $row->total_weight, 3),
+            ])
+            ->toArray();
     }
 }
