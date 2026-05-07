@@ -32,7 +32,9 @@ class OrderService
             'category',
             'responsible',
             'category.prices',
-            'invoice'
+            'invoice',
+            'status',
+            'store'
         ])->findOrFail($id);
     }
 

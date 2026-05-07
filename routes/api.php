@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\V1\PriceController;
 use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
+use App\Http\Controllers\api\v1\CostumerController;
+use App\Http\Controllers\api\v1\OrdersRequestController;
 
 
 Route::prefix('v1')->group(function () {
@@ -43,6 +45,10 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/invoice', InvoiceController::class);
 
         Route::apiResource('/status', StatusController::class);
+        
+        Route::apiResource('/costumer', CostumerController::class);
+        
+        Route::apiResource('/orderRequest', OrdersRequestController::class);
 
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');

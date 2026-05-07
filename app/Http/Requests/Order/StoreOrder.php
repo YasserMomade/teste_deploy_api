@@ -23,7 +23,7 @@ class StoreOrder extends FormRequest
     public function rules(): array
     {
         return [
-            'client_id' => 'exists:clients,id',
+           // 'client_id' => 'exists:clients,id',
             'description' => 'required|string',
             'tracking' => 'required|string|unique:orders,tracking',
             'origin' => 'required|string',
