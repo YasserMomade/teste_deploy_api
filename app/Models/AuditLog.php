@@ -45,8 +45,8 @@ class AuditLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withDefault([
-            'name' => 'System',
-            'user_code' => 'SYSTEM'
+            'name'      => 'System',
+            'user_code' => 'SYSTEM',
         ]);
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CounterController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
 
 
+
 Route::prefix('v1')->group(function () {
 
     Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
@@ -26,7 +28,7 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
-    Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
+    Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('/auth/me',     [AuthController::class, 'me'])->name('auth.me');
@@ -62,6 +64,9 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('users', UserController::class);
             Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
                 ->name('users.reset-password');
+
+            Route::get('audit-logs',      [AuditLogController::class, 'index'])->name('audit-logs.index');
+            Route::get('audit-logs/{id}', [AuditLogController::class, 'show'])->name('audit-logs.show');
         });
     });
 });
