@@ -74,4 +74,19 @@ class FinancialReportService
 
         ];
     }
+
+    public function groupByPaymentMethod($query): array
+    {
+        //TODO:: implement groupByPaymentMethod
+    }
+
+    public function groupByPaymentStatus($query): array
+    {
+        //TODO:: implement groupByPaymentStatus
+    }
+
+    public function getDailyTotals($query): array
+    {
+        //TODO:: implement getDailyTotals
+    }
 }
