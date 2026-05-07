@@ -28,6 +28,8 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
+    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+
     Route::middleware(['auth:sanctum', 'active.user'])->group(function () {
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');

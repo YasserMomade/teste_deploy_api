@@ -98,6 +98,17 @@ use ApiResponse;
         }
     }
 
+    public function tracking(string $tracking): JsonResponse
+    {
+        try {
+            $order = $this->orderService->getOrderByTracking($tracking);
+
+            return $this->success($order);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
     public function update(StoreOrder $request, int $id): JsonResponse
     {
         try {
