@@ -16,6 +16,7 @@ use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
 use App\Http\Controllers\api\v1\CostumerController;
 use App\Http\Controllers\api\v1\OrdersRequestController;
+use App\Http\Controllers\api\v1\FileController;
 
 
 Route::prefix('v1')->group(function () {
@@ -49,8 +50,10 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/status', StatusController::class);
         
         Route::apiResource('/costumer', CostumerController::class);
-        
+
         Route::apiResource('/orderRequest', OrdersRequestController::class);
+        
+        Route::apiResource('/file', FileController::class);
 
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');

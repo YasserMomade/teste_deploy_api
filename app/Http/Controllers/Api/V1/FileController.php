@@ -2,34 +2,32 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Invoice;
+use App\Models\File;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use App\Services\InvoiceService;
-use App\Http\Requests\Invoice\StoreInvoice;
+use App\Services\FIleService;
 
-
-class InvoiceController extends Controller
+class FileController extends Controller
 {
     use ApiResponse;
 
-    protected $invoiceService;
+    protected $fileService;
 
-    public function __construct(InvoiceService $invoiceService)
+    public function __construct(FIleService $fileService)
     {
-        $this->invoiceService = $invoiceService;
-    }  
-    
-    /**
+        $this->fileService = $fileService;
+    } 
+
+     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         try {
-            $invoice = $this->invoiceService->getAllInvoice();
-            return $this->success($invoice);
+            $file = $this->fileService->getAllFiles();
+            return $this->success($file);
 
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -39,11 +37,22 @@ class InvoiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreInvoice $request)
+    public function store(Request $request)
     {
         try {
-            $invoice = $this->invoiceService->createInvoice($request->validated());
-            return $this->created($invoice);
+            $file = $request->file('file');
+
+            $path = $file->store('orders/documents', 'public');
+
+            $file = $this->fileService->createFile(
+                [
+                'document_type' => $request->document_type,
+                'url' => $path,
+                'order_id' => $request->order_id,
+                'responsible_id' => auth()->id(),
+                ]
+            );
+            return $this->created($file);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -55,8 +64,8 @@ class InvoiceController extends Controller
     public function show(String $id)
     {
         try {
-            $invoice = $this->invoiceService->getInvoiceById($id);
-            return $this->success($invoice);
+            $file = $this->fileService->getFileById($id);
+            return $this->success($file);
 
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -67,11 +76,11 @@ class InvoiceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreInvoice $request, string $id)
+    public function update(Storefile $request, string $id)
     {
         try {
-            $invoice = $this->invoiceService->updateInvoice($id, $request->validated());
-            return $this->success($invoice);
+            $file = $this->fileService->updateFile($id, $request->validated());
+            return $this->success($file);
 
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -84,12 +93,11 @@ class InvoiceController extends Controller
     public function destroy(string $id)
     {
         try {
-            $this->invoiceService->deleteInvoice($id);
-            return $this->success(null, 'Invoice deleted successfully');
+            $this->fileService->deleteFile($id);
+            return $this->success(null, 'file deleted successfully');
 
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 }
-

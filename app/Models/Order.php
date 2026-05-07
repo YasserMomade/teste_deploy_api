@@ -52,4 +52,9 @@ class Order extends Model
     {
         return $this->belongsTo(Store::class);
     }
+
+    public function file()
+    {
+        return $this->hasMany(File::class);
+    }
 }
