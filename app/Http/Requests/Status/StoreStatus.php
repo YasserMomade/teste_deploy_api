@@ -23,7 +23,7 @@ class StoreStatus extends FormRequest
     public function rules(): array
     {
         return [
-            'descryption' => 'required|in:recebido_lisboa,em_processamento,pronto_expedicao,expedido,em_transito,recebido_mocambique,pronto_levantamento,entregue',
+           // 'descryption' => 'in:recebido_lisboa,em_processamento,pronto_expedicao,expedido,em_transito,recebido_mocambique,pronto_levantamento,entregue',
             'responsible_id' => 'required|exists:users,id',
             'order_id' => 'required|string|exists:orders,id'
         ];

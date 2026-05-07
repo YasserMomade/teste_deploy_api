@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('status', function (Blueprint $table) {
             $table->id();
-            $table->enum('descryption', ['recebido_lisboa', 'em_processamento', 'pronto_expedicao', 'expedido', 'em_transito', 'recebido_mocambique', 'pronto_levantamento', 'entregue']);
+            $table->enum('descryption', ['recebido_lisboa', 'em_processamento', 'pronto_expedicao', 'expedido', 'em_transito', 'recebido_mocambique', 'pronto_levantamento', 'entregue'])->default('recebido_lisboa');
             $table->softDeletes();
 
             $table->foreignId('responsible_id')->constrained('users')->cascadeOnDelete();
