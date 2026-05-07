@@ -14,8 +14,7 @@ use App\Http\Controllers\api\v1\ObservationController;
 use App\Http\Controllers\Api\V1\PriceController;
 use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\api\v1\StoreController;
-
-
+use App\Http\Controllers\api\v1\StatusController;
 
 
 
@@ -44,6 +43,8 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/prices', PriceController::class);
 
         Route::apiResource('/invoice', InvoiceController::class);
+
+        Route::apiResource('/status', StatusController::class);
 
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');
