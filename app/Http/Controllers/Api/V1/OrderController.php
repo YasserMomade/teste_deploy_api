@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\OrderService;
 use App\Services\InvoiceService;
+use App\Services\StatusService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Order\StoreOrder;
 use App\Http\Controllers\Controller;
@@ -20,11 +21,11 @@ use ApiResponse;
     protected $invoiceService;
 
 
-    public function __construct(OrderService $orderService, InvoiceService $invoiceService)
+    public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService)
     {
         $this->orderService = $orderService;
         $this->invoiceService = $invoiceService;
-
+        $this->statusService = $statusService;
     }   
 
  
@@ -47,22 +48,27 @@ use ApiResponse;
             $order->load(['category.prices']);
 
             $weight = $order->weight;
-
             $price = $order->category->prices->first()?->amount ?? 0;
-
             $amountToPay = $weight * $price;
-
             $reference = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-
             $invoiceData = [
                 "amountTo_pay" => $amountToPay,
                 "amount_paid" => 0,
-                "referencie" => $reference,
+                "referencie" => 'REF-' . $reference,
                 "payment_status" => "pendent",
                 "payment_method" => "undefined"
             ];
-
             $invoice = $this->invoiceService->createInvoice($invoiceData);
+
+            $responsible_id = $order->responsible->id;
+            $order_id = $order->id;
+            $statusData = [
+                "descryption" => "recebido_lisboa",
+                "responsible_id" => $responsible_id,
+                "order_id" => $order_id
+            ];
+            $status = $this->statusService->createStatus($statusData);
+
 
             $order->update([
                 'invoice_id' => $invoice->id
@@ -70,7 +76,8 @@ use ApiResponse;
 
             return $this->created([
                 'order' => $order,
-                'invoice' => $invoice
+                'invoice' => $invoice,
+                'status' => $status
             ]);
 
         } catch (\Exception $e) {

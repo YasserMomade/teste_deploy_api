@@ -23,7 +23,7 @@ class StoreOrder extends FormRequest
     public function rules(): array
     {
         return [
-            'client_id' => 'required|exists:clients,id',
+            'client_id' => 'exists:clients,id',
             'description' => 'required|string',
             'tracking' => 'required|string|unique:orders,tracking',
             'origin' => 'required|string',
@@ -35,6 +35,7 @@ class StoreOrder extends FormRequest
             'declared_weight' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
             'responsible_id' => 'nullable|exists:users,id',
+            'store_id' => 'nullable|exists:stores,id',
         ];
     }
 }

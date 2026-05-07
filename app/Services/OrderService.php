@@ -19,13 +19,21 @@ class OrderService
             'category',
             'responsible',
             'category.prices',
-            'invoice'
+            'invoice',
+            'status',
+            'store'
         ])->get();
     }
 
     public function getOrderById(int $id): ?Order   
     {
-        return Order::with('client')->findOrFail($id);
+        return Order::with([
+            'client',
+            'category',
+            'responsible',
+            'category.prices',
+            'invoice'
+        ])->findOrFail($id);
     }
 
     public function updateOrder(Order $order, array $data): Order

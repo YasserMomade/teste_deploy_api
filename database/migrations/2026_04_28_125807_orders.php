@@ -30,7 +30,8 @@ return new class extends Migration
                 ->nullOnDelete();
                 
         $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
-        $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
+        $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
+        $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete()->nullable();
         $table->foreignId('responsible_id')->constrained('users')->cascadeOnDelete();
 
         $table->timestamps();

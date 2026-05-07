@@ -16,7 +16,8 @@ return new class extends Migration
 
             $table->decimal('amountTo_pay')->nullable();
             $table->decimal('amount_paid')->nullable();
-            $table->integer('referencie');
+            $table->string('referencie');
+            
 
             $table->enum('payment_status', ['pendent', 'paid', 'faild'])->nullable();
             $table->enum('payment_method', ['card', 'cash', 'undefined'])

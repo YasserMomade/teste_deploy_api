@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Invoice;
+namespace App\Http\Requests\Status;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreInvoice extends FormRequest
+class StoreStatus extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,14 +20,13 @@ class StoreInvoice extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'amountTo_pay' => 'nullable|numeric|min:0',
-            'amount_paid' => 'nullable|numeric|min:0',
-            'referencie' => 'required|string',
-            'payment_status' => 'required|string|in:pendent,paid,faild',
-            'payment_method' => 'nullable|string|in:cash,card,undefined',
+           // 'descryption' => 'in:recebido_lisboa,em_processamento,pronto_expedicao,expedido,em_transito,recebido_mocambique,pronto_levantamento,entregue',
+            'responsible_id' => 'required|exists:users,id',
+            'order_id' => 'required|string|exists:orders,id'
         ];
+
     }
 }
