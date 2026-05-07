@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\CostumerService;
+use App\Services\OrderRequestService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Costumer\StoreCostumer;
 use Illuminate\Http\JsonResponse;
@@ -16,9 +17,10 @@ class CostumerController extends Controller
 
     protected $costumerService;
 
-    public function __construct(CostumerService $costumerService)
+    public function __construct(CostumerService $costumerService, OrderRequestService $orderRequestService)
     {
         $this->costumerService = $costumerService;
+        $this->orderRequestService = $orderRequestService;
     }
 
     public function index() : JsonResponse
@@ -35,13 +37,29 @@ class CostumerController extends Controller
     public function store(StoreCostumer $request): JsonResponse
     {
         try {
+            $data = $request->validated();
+
             
-            $costumer = $this->costumerService->createCostumer($request->validated());
+            $costumer = $this->costumerService->createCostumer([
+                "name" => $data['name'],
+                "lastname" => $data['lastname'],
+                "phone" => $data['phone'],
+                "email" => $data['email'],
+            ]);
 
-            //descricao
-            //quantidade
+           
+            foreach ($data['orders_request'] as $order_request) {
 
-            return $this->created($costumer);
+                $this->orderRequestService->createOrder([
+                    "description" => $order_request['description'],
+                    "quantity" => $order_request['quantity'],
+                    "costumer_id" => $costumer->id,
+                    "store_id" => $order_request['store_id'],
+                ]);
+            }
+
+            return $this->created($costumer->load('orderRequest'));
+
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
