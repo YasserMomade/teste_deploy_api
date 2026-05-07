@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\api\v1\ObservationController;
 use App\Http\Controllers\Api\V1\PriceController;
 use App\Http\Controllers\Api\V1\InvoiceController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
 
@@ -67,6 +68,12 @@ Route::prefix('v1')->group(function () {
 
             Route::get('audit-logs',      [AuditLogController::class, 'index'])->name('audit-logs.index');
             Route::get('audit-logs/{id}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+        });
+
+        // == Reports = admin and manager ==
+        Route::middleware('role:admin,manager')->prefix('reports')->group(function () {
+
+            Route::get('/financial',   [ReportController::class, 'financial'])->name('reports.financial');
         });
     });
 });
