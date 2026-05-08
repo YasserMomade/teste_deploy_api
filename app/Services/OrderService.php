@@ -21,7 +21,8 @@ class OrderService
             'category.prices',
             'invoice',
             'status',
-            'store'
+            'store',
+            'file'
         ])->paginate($getPaginate);
     }
 
@@ -34,7 +35,8 @@ class OrderService
             'category.prices',
             'invoice',
             'status',
-            'store'
+            'store',
+            'file'
         ])->findOrFail($id);
     }
 
@@ -47,12 +49,13 @@ class OrderService
             'category.prices',
             'invoice',
             'status',
-            'store'
+            'store',
+            'file'
         ])
         ->where('tracking', $tracking)
         ->firstOrFail();
     }
-    
+
     public function updateOrder(Order $order, array $data): Order
     {
         $order->update($data);
