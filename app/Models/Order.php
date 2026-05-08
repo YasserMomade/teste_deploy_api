@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
@@ -51,5 +53,15 @@ class Order extends Model
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+      public function statuses(): HasMany
+    {
+        return $this->hasMany(Status::class, 'order_id');
+    }
+
+      public function latestStatus(): HasOne
+    {
+        return $this->hasOne(Status::class, 'order_id')->latestOfMany();
     }
 }
