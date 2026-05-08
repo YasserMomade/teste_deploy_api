@@ -76,7 +76,11 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:admin,Manager')->prefix('reports')->group(function () {
 
             Route::get('/financial',   [ReportController::class, 'financial'])->name('reports.financial');
+            Route::get('/operational',   [ReportController::class, 'operational'])->name('reports.operational');
+
             Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
+            Route::get('/operational/export', [ReportController::class, 'exportOperational'])->name('reports.operational.export');
+
             
 
         });

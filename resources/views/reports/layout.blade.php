@@ -4,19 +4,6 @@
 <head>
     <meta charset="utf-8">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
-            color: #222;
-            background: #fff;
-        }
-
         .header {
             display: table;
             width: 100%;
@@ -228,8 +215,8 @@
         .page-footer {
             position: fixed;
             bottom: 0;
-            left: 0;
-            right: 0;
+            left: 38px;
+            right: 38px;
         }
 
         .footer-line-purple {
@@ -255,8 +242,17 @@
             letter-spacing: .04em;
         }
 
-        .body-content {
-            padding: 36px 38px 60px 38px;
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            color: #222;
+            background: #fff;
+
+            margin-top: 26px;
+            margin-right: 38px;
+            margin-bottom: 20px;
+            margin-left: 38px;
         }
     </style>
 </head>

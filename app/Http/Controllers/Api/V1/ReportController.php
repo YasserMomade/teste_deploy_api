@@ -18,34 +18,37 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
-    
-use ApiResponse;
 
-public function __construct(private readonly FinancialReportService $financialService){}
+    use ApiResponse;
 
-public function financial(Request $request): JsonResponse
-{
-    $filters = $this->validateFinancialFilters($request);
-    $data = $this->financialService->generate($filters);
+    public function __construct(
+        private readonly OperationalReportService $operationalService,
+        private readonly FinancialReportService   $financialService,
+    ) {}
 
-    return $this->success($data);
-}
+    public function financial(Request $request): JsonResponse
+    {
+        $filters = $this->validateFinancialFilters($request);
+        $data = $this->financialService->generate($filters);
 
-public function validateFinancialFilters(Request $request): array
-{
-    $base = $this->validateBaseFilters($request);
+        return $this->success($data);
+    }
 
-    $financial = $request->validate([
-        'payment_status' => ['sometimes', 'string', 'in:paid,pendent,faild'],
-        'payment_method' => ['sometimes', 'string', 'in:card,cash,undefined'],
-    ]);
+    public function validateFinancialFilters(Request $request): array
+    {
+        $base = $this->validateBaseFilters($request);
 
-    return array_merge($base, $financial);
-}
+        $financial = $request->validate([
+            'payment_status' => ['sometimes', 'string', 'in:paid,pendent,faild'],
+            'payment_method' => ['sometimes', 'string', 'in:card,cash,undefined'],
+        ]);
 
-private function validateBaseFilters(Request $request): array 
-{
-    return $request->validate([
+        return array_merge($base, $financial);
+    }
+
+    private function validateBaseFilters(Request $request): array
+    {
+        return $request->validate([
             'date_from' => ['sometimes', 'date'],
             'date_to' => ['sometimes', 'date', 'after_or_equal:date_from'],
             'destination' => ['sometimes', 'string'],
@@ -54,15 +57,15 @@ private function validateBaseFilters(Request $request): array
             'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
             'format' => ['sometimes', 'string', 'in:excel,pdf'],
         ]);
-}
+    }
 
- public function exportFinancial(Request $request): mixed
+    public function exportFinancial(Request $request): mixed
     {
         $filters = $this->validateFinancialFilters($request);
         $format  = $request->input('format', 'excel');
         $data    = $this->financialService->generate($filters);
 
-        return match($format) {
+        return match ($format) {
             'pdf'   => $this->exportFinancialPdf($data, $filters),
             default => Excel::download(
                 new FinancialReportExport($data),
@@ -70,14 +73,14 @@ private function validateBaseFilters(Request $request): array
             ),
         };
     }
-    
- private function exportFinancialPdf(array $data, array $filters): Response
+
+    private function exportFinancialPdf(array $data, array $filters): Response
     {
         $pdf = Pdf::loadView('reports.financial', array_merge($data, ['filters' => $filters]))
-                  ->setPaper('a4', 'landscape');
+            ->setPaper('a4', 'landscape');
 
         return $pdf->download('relatorio_financeiro_' . now()->format('Ymd_His') . '.pdf');
     }
 
-
+   
 }
