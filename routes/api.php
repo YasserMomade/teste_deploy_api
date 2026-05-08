@@ -53,6 +53,8 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/orderRequest', OrdersRequestController::class);
         
         Route::apiResource('/file', FileController::class);
+        
+        Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');
