@@ -58,32 +58,45 @@ class FinancialReportService
                 fn($q) => $q->where('orders.store_id', $filters['store_id'])
             );
     }
-    private function buildSummary($query): array
-    {
-        $data = (clone $query)
-            ->selectRaw('
+   private function buildSummary($query): array
+{
+    $data = (clone $query)
+        ->selectRaw('
+            COUNT(*) as total_orders,
 
-            
-                COUNT(*) as total_orders,
-                SUM(invoices.amountTo_pay) as total_to_pay,
-                SUM(invoices.amount_paid) as total_paid,
-                SUM(invoices.amountTo_pay - COALESCE(invoices.amount_paid, 0)) as total_debt,
-                COUNT(CASE WHEN invoices.payment_status = "paid" THEN 1 END) as total_paid_orders,
-                COUNT(CASE WHEN invoices.payment_status = "pendent" THEN 1 END) as total_pendent_orders,
-                COUNT(CASE WHEN invoices.payment_status = "faild" THEN 1 END) as total_failed_orders
-            ')
-            ->first();
+            SUM(invoices.amountTo_pay) as total_to_pay,
 
-        return [
-            'total_orders'         => (int) $data->total_orders,
-            'total_to_pay'         => round((float) $data->total_to_pay, 2),
-            'total_paid'           => round((float) $data->total_paid, 2),
-            'total_debt'           => round((float) $data->total_debt, 2),
-            'total_paid_orders'    => (int) $data->total_paid_orders,
-            'total_pendent_orders' => (int) $data->total_pendent_orders,
-            'total_failed_orders'  => (int) $data->total_failed_orders,
-        ];
-    }
+            SUM(invoices.amount_paid) as total_paid,
+
+            SUM(orders.service_type = "expresso") as total_express,
+
+            SUM(orders.service_type = "normal") as total_normal,
+
+            SUM(
+                invoices.amountTo_pay - 
+                COALESCE(invoices.amount_paid, 0)
+            ) as total_debt,
+
+            SUM(invoices.payment_status = "paid") as total_paid_orders,
+
+            SUM(invoices.payment_status = "pendent") as total_pendent_orders,
+
+            SUM(invoices.payment_status = "faild") as total_failed_orders
+        ')
+        ->first();
+
+    return [
+        "total_orders"         => (int) $data->total_orders,
+        "total_to_pay"         => round((float) $data->total_to_pay, 2),
+        "total_paid"           => round((float) $data->total_paid, 2),
+        "total_debt"           => round((float) $data->total_debt, 2),
+        "total_paid_orders"    => (int) $data->total_paid_orders,
+        "total_pendent_orders" => (int) $data->total_pendent_orders,
+        "total_failed_orders"  => (int) $data->total_failed_orders,
+        "total_express"        => (int) $data->total_express,
+        "total_normal"         => (int) $data->total_normal,
+    ];
+}
 
     private function groupByPaymentStatus($query): array
     {
@@ -146,3 +159,7 @@ class FinancialReportService
             ->toArray();
     }
 }
+
+
+
+
