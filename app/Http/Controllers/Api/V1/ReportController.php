@@ -82,5 +82,41 @@ class ReportController extends Controller
         return $pdf->download('relatorio_financeiro_' . now()->format('Ymd_His') . '.pdf');
     }
 
+     public function operational(Request $request): JsonResponse
+    {
+        $filters = $this->validateOperationalFilters($request);
+        $data = $this->operationalService->generate($filters);
+
+        return $this->success($data);
+    }
+
+    public function exportOperational(Request $request): mixed
+    {
+        $filters = $this->validateOperationalFilters($request);
+        $format  = $request->input('format', 'excel');
+        $data    = $this->operationalService->generate($filters);
+
+        return match ($format) {
+            'pdf'   => $this->exportOperationalPdf($data, $filters),
+            default => Excel::download(
+                new OperationalReportExport($data),
+                'relatorio_operacional_' . now()->format('Ymd_His') . '.xlsx'
+            ),
+        };
+    }
+
+    private function exportOperationalPdf(array $data, array $filters): Response
+    {
+        $pdf = Pdf::loadView('reports.operational', array_merge($data, ['filters' => $filters]))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('relatorio_operacional_' . now()->format('Ymd_His') . '.pdf');
+    }
+
+    private function validateOperationalFilters(Request $request): array
+    {
+        return $this->validateBaseFilters($request);
+    }
+
    
 }
