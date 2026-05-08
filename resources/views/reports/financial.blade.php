@@ -1,194 +1,191 @@
-<!DOCTYPE html>
-<html>
+@extends('reports.layout')
 
-<head>
-    <meta charset="utf-8">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            color: #333;
-        }
+@section('content')
 
-        h1 {
-            font-size: 16px;
-            color: #1a1a2e;
-            margin-bottom: 4px;
-        }
-
-        .subtitle {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 16px;
-        }
-
-        .summary {
-            margin-bottom: 16px;
-        }
-
-        .summary-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        .summary-box {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 8px 12px;
-            flex: 1;
-        }
-
-        .summary-box .label {
-            font-size: 9px;
-            color: #999;
-            text-transform: uppercase;
-        }
-
-        .summary-box .value {
-            font-size: 15px;
-            font-weight: bold;
-            color: #1a1a2e;
-        }
-
-        .value.green {
-            color: #2e7d32;
-        }
-
-        .value.red {
-            color: #c62828;
-        }
+ <style>
+        
+    
 
         table {
-            width: 100%;
-            border-collapse: collapse;
             margin-top: 12px;
         }
 
         th {
-            background: #1a1a2e;
-            color: #fff;
             padding: 6px 8px;
-            text-align: left;
-            font-size: 10px;
         }
 
         td {
             padding: 5px 8px;
-            border-bottom: 1px solid #eee;
             font-size: 10px;
         }
 
-        tr:nth-child(even) {
-            background: #f9f9f9;
-        }
+    
 
-        .badge-paid {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 2px 6px;
-            border-radius: 10px;
-        }
-
-        .badge-pendent {
-            background: #fff8e1;
-            color: #f57f17;
-            padding: 2px 6px;
-            border-radius: 10px;
-        }
-
-        .badge-faild {
-            background: #ffebee;
-            color: #c62828;
-            padding: 2px 6px;
-            border-radius: 10px;
-        }
-
-        .footer {
-            margin-top: 20px;
-            font-size: 9px;
-            color: #999;
-            text-align: right;
-        }
+   
+    
     </style>
-</head>
 
-<body>
-    <h1>Portador Diário — Relatório Financeiro</h1>
-    <div class="subtitle">
-        Período: {{ $filters['date_from'] ?? 'Início' }} a {{ $filters['date_to'] ?? 'Hoje' }}
-        &nbsp;|&nbsp; Gerado em: {{ now()->format('d/m/Y H:i') }}
+  {{-- REPORT TITLE --}}
+  <div class="report-title">Relatório Financeiro - Portador Diário</div>
+  <div class="report-meta">
+    Período:
+    <strong>{{ isset($filters['date_from']) ? \Carbon\Carbon::parse($filters['date_from'])->format('d/m/Y') : 'Início' }}</strong>
+    a
+    <strong>{{ isset($filters['date_to']) ? \Carbon\Carbon::parse($filters['date_to'])->format('d/m/Y') : now()->format('d/m/Y') }}</strong>
+    @if(isset($filters['payment_status'])) &nbsp;|&nbsp; Estado: <strong>{{ ucfirst($filters['payment_status']) }}</strong> @endif
+    @if(isset($filters['payment_method'])) &nbsp;|&nbsp; Método: <strong>{{ ucfirst($filters['payment_method']) }}</strong> @endif
+    &nbsp;|&nbsp; Gerado em: <strong>{{ now()->format('d/m/Y H:i') }}</strong>
+  </div>
+
+  {{-- SUMMARY BOXES --}}
+  <div class="summary-wrap">
+    <div class="summary-box">
+      <span class="s-label">Total a Cobrar</span>
+      <span class="s-value">{{ number_format($summary['total_to_pay'], 2) }}</span>
     </div>
-
-    <div class="summary">
-        <div class="summary-row">
-            <div class="summary-box">
-                <div class="label">Total a Cobrar</div>
-                <div class="value">{{ number_format($summary['total_to_pay'], 2) }}</div>
-            </div>
-            <div class="summary-box">
-                <div class="label">Total Cobrado</div>
-                <div class="value green">{{ number_format($summary['total_paid'], 2) }}</div>
-            </div>
-            <div class="summary-box">
-                <div class="label">Total em Dívida</div>
-                <div class="value red">{{ number_format($summary['total_debt'], 2) }}</div>
-            </div>
-        </div>
-        <div class="summary-row">
-            <div class="summary-box">
-                <div class="label">Encomendas Pagas</div>
-                <div class="value green">{{ $summary['total_paid_orders'] }}</div>
-            </div>
-            <div class="summary-box">
-                <div class="label">Encomendas Pendentes</div>
-                <div class="value">{{ $summary['total_pendent_orders'] }}</div>
-            </div>
-            <div class="summary-box">
-                <div class="label">Pagamentos Falhados</div>
-                <div class="value red">{{ $summary['total_failed_orders'] }}</div>
-            </div>
-        </div>
+    <div class="summary-box">
+      <span class="s-label">Total Cobrado</span>
+      <span class="s-value green">{{ number_format($summary['total_paid'], 2) }}</span>
     </div>
+    <div class="summary-box">
+      <span class="s-label">Total em Dívida</span>
+      <span class="s-value red">{{ number_format($summary['total_debt'], 2) }}</span>
+    </div>
+    <div class="summary-box">
+      <span class="s-label">Encomendas Pagas</span>
+      <span class="s-value green">{{ $summary['total_paid_orders'] }}</span>
+    </div>
+    <div class="summary-box">
+      <span class="s-label">Pendentes</span>
+      <span class="s-value">{{ $summary['total_pendent_orders'] }}</span>
+    </div>
+    <div class="summary-box">
+      <span class="s-label">Falhados</span>
+      <span class="s-value red">{{ $summary['total_failed_orders'] }}</span>
+    </div>
+  </div>
 
-    <table>
-        <thead>
+  {{-- BY PAYMENT STATUS & METHOD --}}
+  <table style="width:100%;border-collapse:separate;border-spacing:8px 0;margin-bottom:4px">
+    <tr>
+      <td style="vertical-align:top;width:55%;padding:0">
+        @if(count($by_payment_status))
+        <div class="section-title">Por Estado de Pagamento</div>
+        <table class="dt">
+          <thead>
             <tr>
-                <th>Tracking</th>
-                <th>Cliente</th>
-                <th>Data</th>
-                <th>Destino</th>
-                <th>A Pagar</th>
-                <th>Pago</th>
-                <th>Saldo</th>
-                <th>Estado</th>
-                <th>Método</th>
-                <th>Responsável</th>
+              <th>Estado</th>
+              <th>Nº Encomendas</th>
+              <th>Total Cobrar</th>
+              <th>Total Pago</th>
             </tr>
-        </thead>
-        <tbody>
-            @foreach($orders as $order)
+          </thead>
+          <tbody>
+            @foreach($by_payment_status as $row)
             <tr>
-                <td>{{ $order->tracking }}</td>
-                <td> {{ ($order['client']['name'] ?? '') . ' ' . ($order['client']['lastname'] ?? '') }}</td>
-                <td>{{ \Carbon\Carbon::parse($order['reception_date'])->format('d/m/Y') }}</td>
-                <td>{{ $order->destination }}</td>
-                <td>{{ number_format($order->invoice?->amountTo_pay ?? 0, 2) }}</td>
-                <td>{{ number_format($order->invoice?->amount_paid ?? 0, 2) }}</td>
-                <td>{{ number_format(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice?->amount_paid ?? 0), 2) }}</td>
-                <td>
-                    <span class="badge-{{ $order->invoice?->payment_status ?? 'pendent' }}">
-                        {{ $order->invoice?->payment_status ?? 'N/A' }}
-                    </span>
-                </td>
-                <td>{{ $order->invoice?->payment_method ?? 'N/A' }}</td>
-                <td>{{ $order->responsible?->name ?? 'N/A' }}</td>
+              <td><span class="badge badge-{{ $row['status'] ?? 'pendent' }}">{{ ucfirst($row['status'] ?? 'N/A') }}</span></td>
+              <td>{{ $row['total_orders'] }}</td>
+              <td>{{ number_format($row['total_amount'], 2) }}</td>
+              <td>{{ number_format($row['total_paid'], 2) }}</td>
             </tr>
             @endforeach
-        </tbody>
-    </table>
+          </tbody>
+        </table>
+        @endif
+      </td>
+      <td style="vertical-align:top;width:45%;padding:0">
+        @if(count($by_payment_method))
+        <div class="section-title">Por Método de Pagamento</div>
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>Método</th>
+              <th>Nº Encomendas</th>
+              <th>Total Cobrado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($by_payment_method as $row)
+            <tr>
+              <td>{{ ucfirst($row['method']) }}</td>
+              <td>{{ $row['total_orders'] }}</td>
+              <td>{{ number_format($row['total_collected'], 2) }}</td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+        @endif
+      </td>
+    </tr>
+  </table>
 
-    <div class="footer">Portador Diário, Lda — Maputo, Moçambique</div>
-</body>
+  {{-- DAILY TOTALS --}}
+  @if(count($daily_totals))
+  <div class="section-title">Totais Diários</div>
+  <table class="dt">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Nº Encomendas</th>
+        <th>Total a Cobrar</th>
+        <th>Total Pago</th>
+        <th>Peso Total (kg)</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach($daily_totals as $row)
+      <tr>
+        <td>{{ \Carbon\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
+        <td>{{ $row['total_orders'] }}</td>
+        <td>{{ number_format($row['total_to_pay'], 2) }}</td>
+        <td>{{ number_format($row['total_paid'], 2) }}</td>
+        <td>{{ number_format($row['total_weight'], 3) }}</td>
+      </tr>
+      @endforeach
+    </tbody>
+  </table>
+  @endif
 
-</html>
+  {{-- DETAIL TABLE --}}
+  <div class="section-title">Detalhe Financeiro das Encomendas</div>
+  <table class="dt">
+    <thead>
+      <tr>
+        <th>Tracking</th>
+        <th>Cliente</th>
+        <th>Data</th>
+        <th>Destino</th>
+        <th>A Pagar</th>
+        <th>Pago</th>
+        <th>Saldo</th>
+        <th>Estado</th>
+        <th>Método</th>
+        <th>Referência</th>
+        <th>Responsável</th>
+      </tr>
+    </thead>
+    <tbody>
+      @forelse($orders as $order)
+      <tr>
+        <td>{{ $order->tracking }}</td>
+         <td> {{ ($order['client']['name'] ?? '') . ' ' . ($order['client']['lastname'] ?? '') }}</td>
+        <td>{{ \Carbon\Carbon::parse($order['reception_date'])->format('d/m/Y') }}</td>
+        <td>{{ $order->destination }}</td>
+        <td>{{ number_format($order->invoice?->amountTo_pay ?? 0, 2) }}</td>
+        <td>{{ number_format($order->invoice?->amount_paid ?? 0, 2) }}</td>
+        <td>{{ number_format(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice?->amount_paid ?? 0), 2) }}</td>
+        <td>
+          @php $st = $order->invoice?->payment_status ?? 'pendent' @endphp
+          <span class="badge badge-{{ $st }}">{{ ucfirst($st) }}</span>
+        </td>
+        <td>{{ ucfirst($order->invoice?->payment_method ?? '—') }}</td>
+        <td>{{ $order->invoice?->referencie ?? '—' }}</td>
+        <td>{{ $order->responsible?->name ?? '—' }}</td>
+      </tr>
+      @empty
+      <tr><td colspan="11" class="empty-state">Nenhuma encomenda encontrada para os filtros seleccionados.</td></tr>
+      @endforelse
+    </tbody>
+  </table>
+
+@endsection

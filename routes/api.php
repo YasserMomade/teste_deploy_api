@@ -47,6 +47,8 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('/status', StatusController::class);
 
+        Route::apiResource('stores', StoreController::class);
+
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');
             Route::post('/', [ObservationController::class, 'store'])->name('observations.store');
@@ -60,7 +62,7 @@ Route::prefix('v1')->group(function () {
 
             Route::apiResource('countries', CountryController::class);
             Route::apiResource('counters',  CounterController::class);
-            Route::apiResource('stores', StoreController::class);
+           
 
             Route::apiResource('users', UserController::class);
             Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
@@ -71,10 +73,11 @@ Route::prefix('v1')->group(function () {
         });
 
         // == Reports = admin and manager ==
-        Route::middleware('role:admin,manager')->prefix('reports')->group(function () {
+        Route::middleware('role:admin,Manager')->prefix('reports')->group(function () {
 
             Route::get('/financial',   [ReportController::class, 'financial'])->name('reports.financial');
             Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
+            
 
         });
     });
