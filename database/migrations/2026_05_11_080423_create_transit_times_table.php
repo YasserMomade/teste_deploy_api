@@ -6,14 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('transit_times', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('countries')->cascadeOnDelete();
+            $table->foreignId('origin_country_id')->constrained('countries')->cascadeOnDelete();
             $table->foreignId('destination_country_id')->constrained('countries')->cascadeOnDelete();
             $table->enum('service_type', ['expresso', 'normal']);
             $table->unsignedInteger('expected_hours')->comment('Expected transit duration in hours');
@@ -28,9 +25,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('transit_times');
