@@ -24,6 +24,7 @@ class ReportController extends Controller
     public function __construct(
         private readonly OperationalReportService $operationalService,
         private readonly FinancialReportService   $financialService,
+        private readonly ExceptionReportService $exceptionService,
     ) {}
 
     public function financial(Request $request): JsonResponse
@@ -82,7 +83,7 @@ class ReportController extends Controller
         return $pdf->download('relatorio_financeiro_' . now()->format('Ymd_His') . '.pdf');
     }
 
-     public function operational(Request $request): JsonResponse
+    public function operational(Request $request): JsonResponse
     {
         $filters = $this->validateOperationalFilters($request);
         $data = $this->operationalService->generate($filters);
@@ -118,5 +119,39 @@ class ReportController extends Controller
         return $this->validateBaseFilters($request);
     }
 
-   
+    public function exception(Request $request): JsonResponse
+    {
+        $filters = $this->validateBaseFilters($request);
+        $data = $this->exceptionService->generate($filters);
+
+        return $this->success($data);
+    }
+
+    public function exportException(Request $request): mixed
+    {
+        $filters = $this->validateBaseFilters($request);
+        $format = $request->input('format', 'excel');
+        $data = $this->exceptionService->generate($filters);
+
+        return match ($format) {
+            'pdf'   => $this->exportExceptionPdf($data, $filters),
+            default => Excel::download(
+                new ExceptionReportExport('without_client', $data['orders_without_client']),
+                'relatorio_excepcoes_' . now()->format('Ymd_His') . '.xlsx'
+            ),
+        };
+    }
+
+    private function exportExceptionPdf(array $data, array $filters): Response
+    {
+        $pdf = Pdf::loadView('reports.exception', array_merge($data, [
+            'filters' => $filters,
+            'orders_without_client' => $data['orders_without_client'],
+            'orders_without_invoice' => $data['orders_without_invoice'],
+            'orders_without_declared_weight' => $data['orders_without_declared_weight'],
+            'orders_without_status' => $data['orders_without_status'],
+        ]))->setPaper('a4', 'portrait');
+
+        return $pdf->download('relatorio_excepcoes_' . now()->format('Ymd_His') . '.pdf');
+    }
 }

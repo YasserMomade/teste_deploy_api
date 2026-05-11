@@ -77,12 +77,11 @@ Route::prefix('v1')->group(function () {
 
             Route::get('/financial',   [ReportController::class, 'financial'])->name('reports.financial');
             Route::get('/operational',   [ReportController::class, 'operational'])->name('reports.operational');
+            Route::get('/exception',   [ReportController::class, 'exception'])->name('reports.exception');
 
             Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
             Route::get('/operational/export', [ReportController::class, 'exportOperational'])->name('reports.operational.export');
-
-            
-
+            Route::get('/exception/export', [ReportController::class, 'exportException'])->name('reports.exception.export');
         });
     });
 });
