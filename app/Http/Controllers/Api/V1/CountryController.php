@@ -29,7 +29,7 @@ class CountryController extends Controller
         );
 
         return $this->success(
-            CounterResource::collection($countries)
+            CountryResource::collection($countries)
         );
     }
 
