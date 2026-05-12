@@ -12,7 +12,7 @@ class OrderService
         return Order::create($data);
     }
 
-    public function getAllOrders()
+    public function getAllOrders(int $getPaginate = 15)
     {
         return Order::with([
             'client',
@@ -21,8 +21,9 @@ class OrderService
             'category.prices',
             'invoice',
             'status',
-            'store'
-        ])->get();
+            'store',
+            'file'
+        ])->paginate($getPaginate);
     }
 
 
@@ -33,8 +34,27 @@ class OrderService
             'category',
             'responsible',
             'category.prices',
-            'invoice'
+            'invoice',
+            'status',
+            'store',
+            'file'
         ])->findOrFail($id);
+    }
+
+    public function getOrderByTracking(string $tracking): ?Order
+    {
+        return Order::with([
+            'client',
+            'category',
+            'responsible',
+            'category.prices',
+            'invoice',
+            'status',
+            'store',
+            'file'
+        ])
+        ->where('tracking', $tracking)
+        ->firstOrFail();
     }
 
     public function updateOrder(Order $order, array $data): Order
