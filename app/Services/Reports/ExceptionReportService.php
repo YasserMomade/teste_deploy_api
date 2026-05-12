@@ -282,8 +282,8 @@ class ExceptionReportService
         $observations = Observation::query()
             ->with([
                 'creator:id,name,user_code',
-                'shipment:id,tracking,destination,service_type,client_id',
-                'shipment.client:id,name,lastname',
+                'order:id,tracking,destination,service_type,client_id',
+                'order.client:id,name,lastname',
             ])
             ->when(
                 isset($filters['date_from']),

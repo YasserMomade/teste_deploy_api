@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Client;
 use App\Models\Order;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrderService
 {
@@ -24,6 +24,7 @@ class OrderService
             'store'
         ])->get();
     }
+
 
     public function getOrderById(int $id): ?Order   
     {
@@ -46,4 +47,7 @@ class OrderService
     {
         $order->delete();
     }
+
+   
+
 }

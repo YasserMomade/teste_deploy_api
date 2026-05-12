@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API\v1;
 use App\Exports\ExceptionReportExport;
 use App\Exports\FinancialReportExport;
 use App\Exports\OperationalReportExport;
+use App\Exports\Sheets\ExceptionSummarySheet;
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogService;
 use App\Services\Reports\ExceptionReportService;
 use App\Services\Reports\FinancialReportService;
 use App\Services\Reports\OperationalReportService;
@@ -15,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Maatwebsite\Excel\Facades\Excel;
+
 
 class ReportController extends Controller
 {
@@ -127,20 +130,22 @@ class ReportController extends Controller
         return $this->success($data);
     }
 
-    public function exportException(Request $request): mixed
-    {
-        $filters = $this->validateBaseFilters($request);
-        $format = $request->input('format', 'excel');
-        $data = $this->exceptionService->generate($filters);
+public function exportException(Request $request): mixed
+{
+    $filters = $this->validateBaseFilters($request);
+    $format = $request->input('format', 'excel');
+    $data = $this->exceptionService->generate($filters);
 
-        return match ($format) {
-            'pdf'   => $this->exportExceptionPdf($data, $filters),
-            default => Excel::download(
-                new ExceptionReportExport('without_client', $data['orders_without_client']),
-                'relatorio_excepcoes_' . now()->format('Ymd_His') . '.xlsx'
-            ),
-        };
-    }
+
+    return match($format) {
+        'pdf'=> $this->exportExceptionPdf($data, $filters),
+        default => Excel::download(
+            new ExceptionReportExport($data),  // agora recebe $data completo
+            'relatorio_excepcoes_' . now()->format('Ymd_His') . '.xlsx'
+        ),
+    };
+}
+
 
     private function exportExceptionPdf(array $data, array $filters): Response
     {

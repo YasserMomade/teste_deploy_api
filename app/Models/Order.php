@@ -64,4 +64,10 @@ class Order extends Model
     {
         return $this->hasOne(Status::class, 'order_id')->latestOfMany();
     }
+    
+    public function observations(): HasMany
+    {
+        return $this->hasMany(Observation::class);
+    }
+
 }
