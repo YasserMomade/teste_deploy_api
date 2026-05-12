@@ -8,6 +8,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\FIleService;
+use App\Http\Requests\File\StoreFile;
 
 class FileController extends Controller
 {
@@ -20,24 +21,10 @@ class FileController extends Controller
         $this->fileService = $fileService;
     } 
 
-     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        try {
-            $file = $this->fileService->getAllFiles();
-            return $this->success($file);
-
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
-    }
-
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreFile $request)
     {
         try {
             $file = $request->file('file');
@@ -49,7 +36,7 @@ class FileController extends Controller
                 'document_type' => $request->document_type,
                 'url' => $path,
                 'order_id' => $request->order_id,
-                'responsible_id' => auth()->id(),
+                'responsible_id' => $request->responsible_id,
                 ]
             );
             return $this->created($file);
@@ -58,40 +45,13 @@ class FileController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(String $id)
-    {
-        try {
-            $file = $this->fileService->getFileById($id);
-            return $this->success($file);
-
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
-    }
-
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Storefile $request, string $id)
-    {
-        try {
-            $file = $this->fileService->updateFile($id, $request->validated());
-            return $this->success($file);
-
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
-    }
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
+        
         try {
             $this->fileService->deleteFile($id);
             return $this->success(null, 'file deleted successfully');

@@ -2,23 +2,23 @@
 
 namespace App\Observers;
 
-use App\Models\Store;
+use App\Models\Order;
 use App\Services\AuditLogService;
 
 class OrderObserver
 {
-    public function created(Store $store): void
+    public function created(Order $order): void
     {
-        AuditLogService::log('created', $store, [], $store->getAttributes());
+        AuditLogService::log('created', $order, [], $order->getAttributes());
     }
 
-    public function updated(Store $store): void
+    public function updated(Order $order): void
     {
-        AuditLogService::log('updated', $store, $store->getOriginal(), $store->getChanges());
+        AuditLogService::log('updated', $order, $order->getOriginal(), $order->getChanges());
     }
 
-    public function deleted(Store $store): void
+    public function deleted(Order $order): void
     {
-        AuditLogService::log('deleted', $store, $store->getAttributes(), []);
+        AuditLogService::log('deleted', $order, $order->getAttributes(), []);
     }
 }

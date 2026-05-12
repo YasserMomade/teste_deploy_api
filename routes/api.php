@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\api\v1\ObservationController;
 use App\Http\Controllers\Api\V1\PriceController;
 use App\Http\Controllers\Api\V1\InvoiceController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
 use App\Http\Controllers\api\v1\CostumerController;
@@ -56,6 +57,8 @@ Route::prefix('v1')->group(function () {
         
         Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
+        Route::apiResource('stores', StoreController::class);
+
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');
             Route::post('/', [ObservationController::class, 'store'])->name('observations.store');
@@ -69,7 +72,7 @@ Route::prefix('v1')->group(function () {
 
             Route::apiResource('countries', CountryController::class);
             Route::apiResource('counters',  CounterController::class);
-            Route::apiResource('stores', StoreController::class);
+           
 
             Route::apiResource('users', UserController::class);
             Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
@@ -77,6 +80,18 @@ Route::prefix('v1')->group(function () {
 
             Route::get('audit-logs',      [AuditLogController::class, 'index'])->name('audit-logs.index');
             Route::get('audit-logs/{id}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+        });
+
+        // == Reports = admin and manager ==
+        Route::middleware('role:admin,Manager')->prefix('reports')->group(function () {
+
+            Route::get('/financial',   [ReportController::class, 'financial'])->name('reports.financial');
+            Route::get('/operational',   [ReportController::class, 'operational'])->name('reports.operational');
+            Route::get('/exception',   [ReportController::class, 'exception'])->name('reports.exception');
+
+            Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
+            Route::get('/operational/export', [ReportController::class, 'exportOperational'])->name('reports.operational.export');
+            Route::get('/exception/export', [ReportController::class, 'exportException'])->name('reports.exception.export');
         });
     });
 

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Client;
 use App\Models\Order;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrderService
 {
@@ -21,9 +21,11 @@ class OrderService
             'category.prices',
             'invoice',
             'status',
-            'store'
+            'store',
+            'file'
         ])->paginate($getPaginate);
     }
+
 
     public function getOrderById(int $id): ?Order   
     {
@@ -34,7 +36,8 @@ class OrderService
             'category.prices',
             'invoice',
             'status',
-            'store'
+            'store',
+            'file'
         ])->findOrFail($id);
     }
 
@@ -47,12 +50,13 @@ class OrderService
             'category.prices',
             'invoice',
             'status',
-            'store'
+            'store',
+            'file'
         ])
         ->where('tracking', $tracking)
         ->firstOrFail();
     }
-    
+
     public function updateOrder(Order $order, array $data): Order
     {
         $order->update($data);
@@ -63,4 +67,7 @@ class OrderService
     {
         $order->delete();
     }
+
+   
+
 }
