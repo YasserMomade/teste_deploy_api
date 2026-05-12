@@ -70,4 +70,9 @@ class Order extends Model
         return $this->hasMany(Observation::class);
     }
 
+
+    public function file()
+    {
+        return $this->hasMany(File::class);
+    }
 }
