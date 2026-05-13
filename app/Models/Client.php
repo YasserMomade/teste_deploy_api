@@ -12,4 +12,9 @@ class Client extends Model
         'phone',
         'email',
     ];
+
+    public function getFullNameAttribute(): string
+    {
+        return trim($this->name . ' ' . $this->lastname);
+    }
 }
