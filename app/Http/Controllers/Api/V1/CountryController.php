@@ -29,7 +29,7 @@ class CountryController extends Controller
         );
 
         return $this->success(
-            CounterResource::collection($countries)
+            CountryResource::collection($countries)
         );
     }
 
@@ -53,5 +53,15 @@ class CountryController extends Controller
         $updated = $this->countryService->update($country, $request->validated());
 
         return $this->success(new CountryResource($updated),  'Country updated successfully.');
+    }
+
+       public function destroy(Country $country): JsonResponse
+    {
+        try {
+            $this->countryService->delete($country);
+            return $this->success(message: 'Country deleted successfully.');
+        } catch (\DomainException $e) {
+            return $this->error($e->getMessage(), 422);
+        }
     }
 }

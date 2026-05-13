@@ -55,4 +55,9 @@ class User extends Authenticatable
     {
         return in_array($this->role->value, $roles, true);
     }
+
+    public function getFullNameAttribute(): string
+    {
+        return trim($this->name . ' ' . $this->lastname);
+    }
 }

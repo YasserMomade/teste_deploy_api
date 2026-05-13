@@ -32,6 +32,8 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
+         Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
+
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('/auth/me',     [AuthController::class, 'me'])->name('auth.me');
@@ -92,6 +94,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
             Route::get('/operational/export', [ReportController::class, 'exportOperational'])->name('reports.operational.export');
             Route::get('/exception/export', [ReportController::class, 'exportException'])->name('reports.exception.export');
-        });
-    });
+            });
+            });
+            });
 
