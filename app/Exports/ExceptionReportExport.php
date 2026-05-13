@@ -11,7 +11,8 @@ class ExceptionReportExport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-           
+            new Sheets\ExceptionDelaysSheet($this->data['delays']),
+         
         ];
     }
 }
