@@ -84,7 +84,7 @@ class InvoiceController extends Controller
     public function destroy(string $id)
     {
         try {
-            $this->invoiceService->deletePrice($id);
+            $this->invoiceService->deleteInvoice($id);
             return $this->success(null, 'Invoice deleted successfully');
 
         } catch (\Exception $e) {

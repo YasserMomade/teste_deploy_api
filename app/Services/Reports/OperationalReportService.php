@@ -17,7 +17,7 @@ class OperationalReportService
                 'category:id,category',
                 'store:id,name',
                 'latestStatus:status.id,status.order_id,status.descryption,status.created_at',
-                'responsible:id,name,user_code',
+                'responsible:id,name,lastname,user_code',
             ])
             ->get();
 

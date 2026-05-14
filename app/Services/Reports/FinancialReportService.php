@@ -16,7 +16,7 @@ class FinancialReportService
             ->with([
                 'client:id,name,lastname',
                 'invoice',
-                'responsible:id,name,user_code',
+                'responsible:id,name,lastname,user_code',
             ])
             ->get();
         return [

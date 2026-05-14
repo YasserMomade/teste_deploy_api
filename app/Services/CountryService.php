@@ -34,9 +34,9 @@ class CountryService
     public function delete(Country $country): void
     {
 
-        if ($country->branches()->exists()) {
+        if ($country->counters()->exists()) {
             throw new ConflictHttpException(
-                'Cannot delete a country that has branches assigned.'
+                'Cannot delete a country that has counters assigned.'
             );
         }
 

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Client extends Model
+class Costumer extends Model
 {
     protected $fillable = [
         'name',
@@ -13,8 +13,7 @@ class Client extends Model
         'email',
     ];
 
-    public function getFullNameAttribute(): string
-    {
-        return trim($this->name . ' ' . $this->lastname);
+    public function orderRequest() {
+        return $this->hasMany(Orders_request::class);
     }
 }

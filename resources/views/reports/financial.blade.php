@@ -187,7 +187,7 @@
         : '-' }}
             </td>
 
-            <td>{{ $order->invoice?->referencie ?? '—' }}</td>
+            <td>{{ $order->invoice?->referencie ?? '-' }}</td>
             <td>{{ ($order->responsible?->name ?? '') . '' . ($order->responsible?->lastname ?? '') }}</td>
         </tr>
         @empty

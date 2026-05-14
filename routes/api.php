@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
+use App\Http\Controllers\api\v1\CostumerController;
+use App\Http\Controllers\api\v1\OrdersRequestController;
+use App\Http\Controllers\api\v1\FileController;
 
 
 
@@ -29,7 +32,8 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
-    Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
+         Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
+
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('/auth/me',     [AuthController::class, 'me'])->name('auth.me');
@@ -46,6 +50,14 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/invoice', InvoiceController::class);
 
         Route::apiResource('/status', StatusController::class);
+        
+        Route::apiResource('/costumer', CostumerController::class);
+
+        Route::apiResource('/orderRequest', OrdersRequestController::class);
+        
+        Route::apiResource('/file', FileController::class);
+        
+        Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
         Route::apiResource('stores', StoreController::class);
 
@@ -82,6 +94,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
             Route::get('/operational/export', [ReportController::class, 'exportOperational'])->name('reports.operational.export');
             Route::get('/exception/export', [ReportController::class, 'exportException'])->name('reports.exception.export');
-        });
-    });
-});
+            });
+            });
+            });
+

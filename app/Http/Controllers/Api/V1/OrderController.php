@@ -20,7 +20,6 @@ use ApiResponse;
     protected $orderService;
     protected $invoiceService;
 
-
     public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService)
     {
         $this->orderService = $orderService;
@@ -50,6 +49,7 @@ use ApiResponse;
             $weight = $order->weight;
             $price = $order->category->prices->first()?->amount ?? 0;
             $amountToPay = $weight * $price;
+            
             $reference = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
             $invoiceData = [
                 "amountTo_pay" => $amountToPay,
@@ -92,6 +92,17 @@ use ApiResponse;
             if (!$order) {
                 return $this->notFound();
             }
+            return $this->success($order);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    public function tracking(string $tracking): JsonResponse
+    {
+        try {
+            $order = $this->orderService->getOrderByTracking($tracking);
+
             return $this->success($order);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
