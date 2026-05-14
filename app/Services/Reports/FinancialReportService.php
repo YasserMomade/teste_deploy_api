@@ -68,7 +68,7 @@ class FinancialReportService
 
             SUM(invoices.amount_paid) as total_paid,
 
-            SUM(orders.service_type = "expresso") as total_express,
+            SUM(orders.service_type = "drop off") as total_express,
 
             SUM(orders.service_type = "normal") as total_normal,
 

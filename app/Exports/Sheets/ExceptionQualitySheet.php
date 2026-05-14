@@ -14,35 +14,35 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, WithEvents
 {
-    private const PURPLE   = '962479';
-    private const LIME     = 'C5D22D';
-    private const WHITE    = 'FFFFFF';
-    private const LIGHT    = 'F9F0F6';
-    private const GRN_BG   = 'E8F5E9';
-    private const GRN_FG   = '1B5E20';
-    private const RED_BG   = 'FFEBEE';
-    private const RED_FG   = 'B71C1C';
-    private const AMB_BG   = 'FFF8E1';
-    private const AMB_FG   = '6D4C41';
-    private const DARK_RED = '3D0000';
+    private const PURPLE = '962479';
+    private const LIME = 'C5D22D';
+    private const WHITE = 'FFFFFF';
+    private const LIGHT = 'F9F0F6';
+    private const GRN_BG = 'E8F5E9';
+    private const GRN_FG = '1B5E20';
+    private const RED_BG = 'FFEBEE';
+    private const RED_FG = 'B71C1C';
+    private const AMB_BG = 'FFF8E1';
+    private const AMB_FG = '6D4C41';
+    private const DARK_RED = 'e3c1c6';
 
-    private array $sectionHeaderRows  = [];
-    private array $tableHeaderRows    = [];
-    private array $scoreRows          = [];
-    private array $responsibleRows    = [];
-    private array $criticalObsRows    = [];
-    private array $trendRows          = [];
-    private array $obsHeaderRows      = [];
-    private int   $accentRow          = 0;
+    private array $sectionHeaderRows = [];
+    private array $tableHeaderRows = [];
+    private array $scoreRows = [];
+    private array $responsibleRows = [];
+    private array $criticalObsRows = [];
+    private array $trendRows = [];
+    private array $obsHeaderRows = [];
+    private int   $accentRow = 0;
 
     public function __construct(private readonly array $quality) {}
 
     public function array(): array
     {
-        $rows   = [];
+        $rows = [];
         $rowNum = 1;
 
-        // ── Score summary ──────────────────────────────────────────
+        // ==== Score summary ====
         $this->sectionHeaderRows[] = $rowNum;
         $rows[] = ['ÍNDICE DE QUALIDADE OPERACIONAL', '', '', '', '', '', '', '', ''];
         $rowNum++;
@@ -52,9 +52,9 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
         $rowNum++;
 
         $scoreItems = [
-            ['Score (0.00 – 4.00)', number_format($this->quality['score']['score'], 2)],
-            ['Percentagem',          $this->quality['score']['percentage'] . '%'],
-            ['Classificação',        $this->quality['score']['label']],
+            ['Score (0.00 - 4.00)', number_format($this->quality['score']['score'], 2)],
+            ['Percentagem', $this->quality['score']['percentage'] . '%'],
+            ['Classificação', $this->quality['score']['label']],
         ];
 
         foreach ($scoreItems as $item) {
@@ -66,7 +66,7 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
         $rows[] = ['', '', '', '', '', '', '', '', ''];
         $rowNum++;
 
-        // ── Observation summary ────────────────────────────────────
+        // ==== Observation summary ====
         $this->sectionHeaderRows[] = $rowNum;
         $rows[] = ['RESUMO DE OBSERVAÇÕES', '', '', '', '', '', '', '', ''];
         $rowNum++;
@@ -76,9 +76,9 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
         $rowNum++;
 
         $levels = [
-            ['Good',     $this->quality['summary']['total_good'],     'good'],
-            ['Medium',   $this->quality['summary']['total_medium'],   'medium'],
-            ['Bad',      $this->quality['summary']['total_bad'],      'bad'],
+            ['Good', $this->quality['summary']['total_good'], 'good'],
+            ['Medium', $this->quality['summary']['total_medium'],'medium'],
+            ['Bad', $this->quality['summary']['total_bad'], 'bad'],
             ['Critical', $this->quality['summary']['total_critical'], 'critical'],
         ];
 
@@ -98,37 +98,37 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
         $rows[] = ['', '', '', '', '', '', '', '', ''];
         $rowNum++;
 
-        // ── By responsible ─────────────────────────────────────────
-        if (! empty($this->quality['by_responsible'])) {
-            $this->sectionHeaderRows[] = $rowNum;
-            $rows[] = ['QUALIDADE POR COLABORADOR', '', '', '', '', '', '', '', ''];
-            $rowNum++;
+        // // ==== By responsible =======
+        // if (! empty($this->quality['by_responsible'])) {
+        //     $this->sectionHeaderRows[] = $rowNum;
+        //     $rows[] = ['QUALIDADE POR COLABORADOR', '', '', '', '', '', '', '', ''];
+        //     $rowNum++;
 
-            $this->tableHeaderRows[] = $rowNum;
-            $rows[] = ['Colaborador', 'Código', 'Total', 'Good', 'Medium', 'Bad', 'Critical', 'Score', 'Classificação'];
-            $rowNum++;
+        //     $this->tableHeaderRows[] = $rowNum;
+        //     $rows[] = ['Colaborador', 'Código', 'Total', 'Good', 'Medium', 'Bad', 'Critical', 'Score', 'Classificação'];
+        //     $rowNum++;
 
-            foreach ($this->quality['by_responsible'] as $row) {
-                $this->responsibleRows[] = ['row' => $rowNum, 'score' => $row['score']];
-                $rows[] = [
-                    $row['responsible'],
-                    $row['user_code'],
-                    $row['total'],
-                    $row['good'],
-                    $row['medium'],
-                    $row['bad'],
-                    $row['critical'],
-                    $row['score'] . '/4',
-                    $row['score_label'],
-                ];
-                $rowNum++;
-            }
+        //     foreach ($this->quality['by_responsible'] as $row) {
+        //         $this->responsibleRows[] = ['row' => $rowNum, 'score' => $row['score']];
+        //         $rows[] = [
+        //             $row['responsible'],
+        //             $row['user_code'],
+        //             $row['total'],
+        //             $row['good'],
+        //             $row['medium'],
+        //             $row['bad'],
+        //             $row['critical'],
+        //             $row['score'] . '/4',
+        //             $row['score_label'],
+        //         ];
+        //         $rowNum++;
+        //     }
 
-            $rows[] = ['', '', '', '', '', '', '', '', ''];
-            $rowNum++;
-        }
+        //     $rows[] = ['', '', '', '', '', '', '', '', ''];
+        //     $rowNum++;
+        // }
 
-        // ── Critical and bad orders ────────────────────────────────
+        // ==== Critical and bad orders =====
         if (! empty($this->quality['critical_and_bad_orders'])) {
             $this->sectionHeaderRows[] = $rowNum;
             $rows[] = ['ENCOMENDAS COM OBSERVAÇÕES CRÍTICAS OU MÁS', '', '', '', '', '', '', '', ''];
@@ -169,7 +169,7 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
             }
         }
 
-        // ── Trend ──────────────────────────────────────────────────
+        // === Trend =====
         if (! empty($this->quality['trend'])) {
             $this->sectionHeaderRows[] = $rowNum;
             $rows[] = ['TENDÊNCIA DE QUALIDADE POR DIA', '', '', '', '', '', '', '', ''];
@@ -209,7 +209,7 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
 
     public function columnWidths(): array
     {
-        return ['A' => 28, 'B' => 22, 'C' => 20, 'D' => 14, 'E' => 14, 'F' => 10, 'G' => 10, 'H' => 12, 'I' => 16];
+        return ['A' => 28, 'B' => 28, 'C' => 20, 'D' => 20, 'E' => 14, 'F' => 10, 'G' => 10, 'H' => 12, 'I' => 16];
     }
 
     public function registerEvents(): array
@@ -222,9 +222,9 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                 foreach ($this->sectionHeaderRows as $row) {
                     $sheet->mergeCells("A{$row}:I{$row}");
                     $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
-                        'font'      => ['bold' => true, 'size' => 11, 'color' => ['rgb' => self::WHITE]],
-                        'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
-                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'indent' => 1],
+                        'font' => ['bold' => true, 'size' => 11, 'color' => ['rgb' => self::WHITE]],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
+                        'alignment'=> ['horizontal' => Alignment::HORIZONTAL_LEFT, 'indent' => 1],
                     ]);
                     $sheet->getRowDimension($row)->setRowHeight(22);
                 }
@@ -232,10 +232,10 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                 // Table headers - lime
                 foreach ($this->tableHeaderRows as $row) {
                     $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
-                        'font'      => ['bold' => true, 'color' => ['rgb' => '3E2723'], 'size' => 9],
-                        'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::LIME]],
+                        'font' => ['bold' => true, 'color' => ['rgb' => '3E2723'], 'size' => 9],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::LIME]],
                         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-                        'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'BBBBBB']]],
+                        'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'BBBBBB']]],
                     ]);
                     $sheet->getRowDimension($row)->setRowHeight(20);
                 }
@@ -244,11 +244,11 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                 foreach ($this->scoreRows as $row) {
                     $bg = ($row % 2 === 0) ? self::LIGHT : self::WHITE;
                     $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
-                        'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                     ]);
                     $sheet->getStyle("B{$row}")->applyFromArray([
-                        'font'      => ['bold' => true, 'color' => ['rgb' => self::PURPLE]],
+                        'font' => ['bold' => true, 'color' => ['rgb' => self::PURPLE]],
                         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                     ]);
                     $sheet->getRowDimension($row)->setRowHeight(18);
@@ -256,14 +256,14 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
 
                 // Observation level rows
                 foreach ($this->obsHeaderRows as $item) {
-                    $row   = $item['row'];
+                    $row = $item['row'];
                     $level = $item['level'];
 
                     if ($level === 'order_header') {
                         $sheet->mergeCells("A{$row}:I{$row}");
                         $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
-                            'font'      => ['bold' => true, 'color' => ['rgb' => self::WHITE]],
-                            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '6B1A50']],
+                            'font' => ['bold' => true, 'color' => ['rgb' => self::WHITE]],
+                            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '6B1A50']],
                             'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'indent' => 1],
                         ]);
                         $sheet->getRowDimension($row)->setRowHeight(18);
@@ -271,19 +271,19 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                     }
 
                     [$bg, $fg] = match($level) {
-                        'good'     => [self::GRN_BG, self::GRN_FG],
-                        'medium'   => [self::AMB_BG, self::AMB_FG],
-                        'bad'      => [self::RED_BG, self::RED_FG],
+                        'good' => [self::GRN_BG, self::GRN_FG],
+                        'medium' => [self::AMB_BG, self::AMB_FG],
+                        'bad' => [self::RED_BG, self::RED_FG],
                         'critical' => [self::DARK_RED, self::WHITE],
-                        default    => [self::WHITE, '333333'],
+                        default => [self::WHITE, '333333'],
                     };
 
                     $sheet->getStyle("A{$row}:C{$row}")->applyFromArray([
-                        'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                     ]);
                     $sheet->getStyle("A{$row}")->applyFromArray([
-                        'font'      => ['bold' => true, 'color' => ['rgb' => $fg]],
+                        'font' => ['bold' => true, 'color' => ['rgb' => $fg]],
                         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                     ]);
                     $sheet->getRowDimension($row)->setRowHeight(18);
@@ -295,19 +295,19 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                     $level = $item['level'];
 
                     [$bg, $fg] = match($level) {
-                        'good'     => [self::GRN_BG, self::GRN_FG],
-                        'medium'   => [self::AMB_BG, self::AMB_FG],
-                        'bad'      => [self::RED_BG, self::RED_FG],
+                        'good' => [self::GRN_BG, self::GRN_FG],
+                        'medium' => [self::AMB_BG, self::AMB_FG],
+                        'bad' => [self::RED_BG, self::RED_FG],
                         'critical' => [self::DARK_RED, self::WHITE],
-                        default    => [self::WHITE, '333333'],
+                        default => [self::WHITE, '333333'],
                     };
 
                     $sheet->getStyle("A{$row}:D{$row}")->applyFromArray([
-                        'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                     ]);
                     $sheet->getStyle("A{$row}")->applyFromArray([
-                        'font'      => ['bold' => true, 'color' => ['rgb' => $fg]],
+                        'font'=> ['bold' => true, 'color' => ['rgb' => $fg]],
                         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                     ]);
                     $sheet->getRowDimension($row)->setRowHeight(18);
@@ -315,21 +315,21 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
 
                 // Responsible rows - score-based colour
                 foreach ($this->responsibleRows as $item) {
-                    $row   = $item['row'];
+                    $row  = $item['row'];
                     $score = $item['score'];
 
                     $bg = match(true) {
                         $score >= 3.5 => self::GRN_BG,
                         $score >= 2.5 => self::AMB_BG,
-                        default       => self::RED_BG,
+                        default => self::RED_BG,
                     };
 
                     $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
-                        'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                     ]);
                     $sheet->getStyle("H{$row}")->applyFromArray([
-                        'font'      => ['bold' => true],
+                        'font' => ['bold' => true],
                         'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                     ]);
                     $sheet->getRowDimension($row)->setRowHeight(18);
@@ -339,7 +339,7 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                 foreach ($this->trendRows as $i => $row) {
                     $bg = ($i % 2 === 0) ? self::LIGHT : self::WHITE;
                     $sheet->getStyle("A{$row}:E{$row}")->applyFromArray([
-                        'fill'    => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                     ]);
                     $sheet->getStyle("B{$row}")->getFont()->getColor()->setRGB(self::GRN_FG);
