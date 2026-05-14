@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
+
+use HasFactory;
+
     protected $fillable = [
         'client_id',
         'description',
@@ -24,6 +28,13 @@ class Order extends Model
         'invoice_id',
         'store_id',
     ];
+
+    protected function casts(): array
+{
+    return [
+        'reception_date' => 'datetime',
+    ];
+}
 
     public function client()
     {
@@ -54,6 +65,22 @@ class Order extends Model
     {
         return $this->belongsTo(Store::class);
     }
+
+      public function statuses(): HasMany
+    {
+        return $this->hasMany(Status::class, 'order_id');
+    }
+
+      public function latestStatus(): HasOne
+    {
+        return $this->hasOne(Status::class, 'order_id')->latestOfMany();
+    }
+    
+    public function observations(): HasMany
+    {
+        return $this->hasMany(Observation::class);
+    }
+
 
     public function file()
     {

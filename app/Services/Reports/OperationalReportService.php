@@ -17,7 +17,11 @@ class OperationalReportService
                 'category:id,category',
                 'store:id,name',
                 'latestStatus:status.id,status.order_id,status.descryption,status.created_at',
+<<<<<<< HEAD
                 'responsible:id,name,user_code',
+=======
+                'responsible:id,name,lastname,user_code',
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
             ])
             ->get();
 

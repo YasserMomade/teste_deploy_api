@@ -16,7 +16,11 @@ class FinancialReportService
             ->with([
                 'client:id,name,lastname',
                 'invoice',
+<<<<<<< HEAD
                 'responsible:id,name,user_code',
+=======
+                'responsible:id,name,lastname,user_code',
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
             ])
             ->get();
         return [
@@ -68,7 +72,11 @@ class FinancialReportService
 
             SUM(invoices.amount_paid) as total_paid,
 
+<<<<<<< HEAD
             SUM(orders.service_type = "expresso") as total_express,
+=======
+            SUM(orders.service_type = "drop off") as total_express,
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
 
             SUM(orders.service_type = "normal") as total_normal,
 
