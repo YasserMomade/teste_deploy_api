@@ -57,7 +57,7 @@
     </div>
    <div class="summary-box">
         <span class="s-label">Tipo de entrega</span>
-        <span class="s-value red" style="font-size: 10px;">{{'Expresso: ' . $summary['total_express'] }}</span>
+        <span class="s-value red" style="font-size: 10px;">{{'Drop off: ' . $summary['total_express'] }}</span>
         <span class="s-value green" style="font-size: 10px;">{{'Normal: ' . $summary['total_normal'] }}</span>
     </div>
 </div>
