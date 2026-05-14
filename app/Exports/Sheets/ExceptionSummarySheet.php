@@ -84,7 +84,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                // ── Row 1: Title ──
+                // == Row 1: Title ==
                 $sheet->mergeCells('A1:C1');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 14, 'color' => ['rgb' => self::WHITE]],
@@ -93,7 +93,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
                 ]);
                 $sheet->getRowDimension(1)->setRowHeight(28);
 
-                // ── Row 2: Subtitle ──
+                // == Row 2: Subtitle ==
                 $sheet->mergeCells('A2:C2');
                 $sheet->getStyle('A2')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 11, 'color' => ['rgb' => self::WHITE]],
@@ -102,7 +102,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
                 ]);
                 $sheet->getRowDimension(2)->setRowHeight(20);
 
-                // ── Row 4: Table header ──
+                // == Row 4: Table header ==
                 $sheet->getStyle('A4:C4')->applyFromArray([
                     'font'      => ['bold' => true, 'color' => ['rgb' => self::WHITE]],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
@@ -110,7 +110,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
                     'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
                 ]);
 
-                // ── Rows 5-10: Data rows ──
+                // == Rows 5-10: Data rows ==
                 for ($row = 5; $row <= 10; $row++) {
                     $bg = ($row % 2 === 0) ? self::LIGHT : self::WHITE;
                     $sheet->getStyle("A{$row}:C{$row}")->applyFromArray([
@@ -129,7 +129,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
                     ]);
                 }
 
-                // ── Row 13: Quality section header ──
+                // == Row 13: Quality section header ==
                 $sheet->mergeCells('A13:C13');
                 $sheet->getStyle('A13')->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 11, 'color' => ['rgb' => self::WHITE]],
@@ -138,7 +138,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
                 ]);
                 $sheet->getRowDimension(13)->setRowHeight(20);
 
-                // ── Row 14: Quality sub-header ──
+                // == Row 14: Quality sub-header ==
                 $sheet->getStyle('A14:B14')->applyFromArray([
                     'font'      => ['bold' => true, 'color' => ['rgb' => self::WHITE]],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::LIME]],
@@ -146,7 +146,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
                     'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
                 ]);
 
-                // ── Rows 15-16: Quality data ──
+                // == Rows 15-16: Quality data ==
                 foreach ([15, 16] as $row) {
                     $bg = ($row % 2 === 0) ? self::LIGHT : self::WHITE;
                     $sheet->getStyle("A{$row}:B{$row}")->applyFromArray([
