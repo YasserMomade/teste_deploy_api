@@ -31,7 +31,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login'])
         ->middleware('throttle:10,1')
         ->name('auth.login');
-
+  Route::apiResource('/orders', OrderController::class);
          Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
 
@@ -41,7 +41,7 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('/clients', ClientControler::class);
 
-        Route::apiResource('/orders', OrderController::class);
+      
 
         Route::apiResource('/categories', CategoryController::class);
 

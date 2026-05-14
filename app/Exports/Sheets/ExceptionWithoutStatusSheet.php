@@ -13,12 +13,12 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHeadings, WithColumnWidths, WithEvents
+class ExceptionWithoutStatusSheet implements FromCollection, WithTitle, WithHeadings, WithColumnWidths, WithEvents
 {
     private const PURPLE = '962479';
     private const LIME = 'C5D22D';
     private const WHITE = 'FFFFFF';
-    private const LIGHT = 'F9F0F6';
+    private const LIGHT= 'F9F0F6';
 
     public function __construct(private readonly mixed $orders) {}
 
@@ -26,27 +26,27 @@ class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHead
     {
         return collect($this->orders)->map(fn($order) => [
             $order->tracking,
+            $order->client?->full_name ?? '-',
             $order->destination,
             $order->reception_date?->format('d/m/Y') ?? '-',
             $order->weight,
-            $order->store?->name ?? '-',
             $order->responsible?->full_name ?? '-',
         ]);
     }
 
     public function headings(): array
     {
-        return ['Tracking', 'Destino', 'Data Recepção', 'Peso (kg)', 'Loja', 'Responsável'];
+        return ['Tracking', 'Cliente', 'Destino', 'Data Recepção', 'Peso (kg)', 'Responsável'];
     }
 
     public function title(): string
     {
-        return 'Sem Cliente';
+        return 'Sem Estado';
     }
 
     public function columnWidths(): array
     {
-        return ['A' => 22, 'B' => 20, 'C' => 16, 'D' => 12, 'E' => 20, 'F' => 22];
+        return ['A' => 22, 'B' => 28, 'C' => 20, 'D' => 16, 'E' => 12, 'F' => 22];
     }
 
     public function registerEvents(): array
@@ -64,7 +64,7 @@ class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHead
                 // Header row
                 $sheet->getStyle($range)->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['rgb' => self::WHITE], 'size' => 10],
-                    'fill'=> ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'BBBBBB']]],
                 ]);
@@ -88,9 +88,10 @@ class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHead
                     ],
                 ]);
 
-                // Freeze top row
+            
                 $sheet->freezePane('A2');
 
+            
             },
         ];
     }

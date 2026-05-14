@@ -14,7 +14,9 @@ class ExceptionReportExport implements WithMultipleSheets
             new Sheets\ExceptionSummarySheet($this->data['summary']),
             new Sheets\ExceptionDelaysSheet($this->data['delays']),
             new Sheets\ExceptionQualitySheet($this->data['quality']),
-             new Sheets\ExceptionWithoutClientSheet($this->data['orders_without_client']),
+            new Sheets\ExceptionWithoutClientSheet($this->data['orders_without_client']),
+            new Sheets\ExceptionWithoutStatusSheet($this->data['orders_without_status']),
+
         ];
     }
 }
