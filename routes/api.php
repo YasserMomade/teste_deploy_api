@@ -31,6 +31,9 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login'])
         ->middleware('throttle:10,1')
         ->name('auth.login');
+
+        Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+
   Route::apiResource('/orders', OrderController::class);
          Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
@@ -57,7 +60,6 @@ Route::prefix('v1')->group(function () {
         
         Route::apiResource('/file', FileController::class);
         
-        Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
         Route::apiResource('stores', StoreController::class);
 
