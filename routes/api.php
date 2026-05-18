@@ -59,7 +59,7 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/orderRequest', OrdersRequestController::class);
         
         Route::apiResource('/file', FileController::class);
-        
+         Route::apiResource('countries', CountryController::class);
 
         Route::apiResource('stores', StoreController::class);
 
@@ -72,9 +72,9 @@ Route::prefix('v1')->group(function () {
         });
 
         // == So admin ==
-        Route::middleware('role:admin')->group(function () {
+        Route::middleware('role:admin,Manager')->group(function () {
 
-            Route::apiResource('countries', CountryController::class);
+           
             Route::apiResource('counters',  CounterController::class);
            
 
