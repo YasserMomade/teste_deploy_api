@@ -18,8 +18,10 @@ class CounterResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'country_id' => $this->country_id,
+            'address' => $this->address,
             'country' => new CountryResource($this->whenLoaded('country')),
             'created_at' => $this->created_at?->toDateTimeString(),
+
         ];
     }
 }

@@ -13,12 +13,16 @@ class StoreService
     public function list(array $filters = []): LengthAwarePaginator
     {
         return Store::query()
+        ->withCount('orders')
+        ->with(['orders.category'])
         ->when(
             isset($filters['search']),
             fn($q) => 
             $q->where('name', 'like', "%{$filters['search']}%")
         )->orderBy('name')->paginate($filters['per_page'] ?? 15);
     }
+
+ 
 
     public function create(array $data): Store 
     {
