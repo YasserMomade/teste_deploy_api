@@ -87,18 +87,4 @@ use HasFactory;
         return $this->hasMany(File::class);
     }
 
-      public function statuses(): HasMany
-    {
-        return $this->hasMany(Status::class, 'order_id');
-    }
-
-      public function latestStatus(): HasOne
-    {
-        return $this->hasOne(Status::class, 'order_id')->latestOfMany();
-    }
-    
-    public function observations(): HasMany
-    {
-        return $this->hasMany(Observation::class);
-    }
 }

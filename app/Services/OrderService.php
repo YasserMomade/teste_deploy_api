@@ -57,6 +57,30 @@ class OrderService
         ->firstOrFail();
     }
 
+    public function statisc()
+    {
+        $totalOrders = Order::count();
+
+        $totalWeight = Order::sum('weight');
+
+        $totalRevenue = Order::join('invoices', 'invoices.id', '=', 'orders.invoice_id')
+            ->sum('invoices.amountTo_pay');
+
+        // $serviceTypes = Order::select(
+        //     'service_type',
+        //     DB::raw('count(*) as total')
+        // )
+        // ->groupBy('service_type')
+        // ->get();
+
+        return response()->json([
+            'total_orders' => $totalOrders,
+            'total_weight' => $totalWeight,
+            'total_revenue' => $totalRevenue,
+            // 'service_types' => $serviceTypes
+        ]);
+    }
+
     public function updateOrder(Order $order, array $data): Order
     {
         $order->update($data);

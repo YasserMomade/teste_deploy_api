@@ -109,6 +109,17 @@ use ApiResponse;
         }
     }
 
+    public function statisc(): JsonResponse
+    {
+        try {
+            $order = $this->orderService->statisc();
+
+            return $this->success($order);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
     public function update(StoreOrder $request, int $id): JsonResponse
     {
         try {
