@@ -10,8 +10,7 @@ use App\Services\StatusService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Order\StoreOrder;
 use App\Http\Controllers\Controller;
-
-
+use App\Http\Requests\Order\UpdateOrderRequest;
 
 class OrderController extends Controller
 {
@@ -109,18 +108,7 @@ use ApiResponse;
         }
     }
 
-    public function statisc(): JsonResponse
-    {
-        try {
-            $order = $this->orderService->statisc();
-
-            return $this->success($order);
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
-    }
-
-    public function update(StoreOrder $request, int $id): JsonResponse
+    public function update(UpdateOrderRequest $request, int $id): JsonResponse
     {
         try {
             $order = $this->orderService->getOrderById($id);

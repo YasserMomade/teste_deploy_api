@@ -18,7 +18,8 @@ class CountryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'iva' => $this->iva,
-            'coin' => $this->coin,            
+            'coin' => $this->coin,
+            'counters_count' => $this->counters_count,            
             'created_at' => $this->created_at?->toDateTimeString(),
         ];
     }

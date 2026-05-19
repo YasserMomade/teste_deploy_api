@@ -9,17 +9,17 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class CountryService
 {
-    public function list(array $filters = []): LengthAwarePaginator
-    {
-        return Country::query()
-            ->when(
-                isset($filters['search']),
-                fn($q) =>
-                $q->where('name', 'like', "%{$filters['search']}%")
-            )->orderBy('name')
-            ->paginate($filters['per_page'] ?? 15);
-    }
+public function list(array $filters = []): LengthAwarePaginator
+{
+    return Country::query() ->withCount('counters')
+    ->when(
+            !empty($filters['search']),
+            fn($q) =>
+            $q->where('name', 'like', "%{$filters['search']}%")
+        ) ->orderBy('name')
 
+        ->paginate($filters['per_page'] ?? 15);
+}
     public function create(array $data): Country
     {
         return Country::create($data);
@@ -40,6 +40,6 @@ class CountryService
             );
         }
 
-        $country->delete();
+        $country->forceDelete();
     }
 }

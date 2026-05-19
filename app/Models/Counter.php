@@ -13,7 +13,7 @@ class Counter extends Model
 
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'country_id'];
+    protected $fillable = ['name', 'country_id', 'address'];
 
     public function country(): BelongsTo
     {

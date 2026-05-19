@@ -52,7 +52,7 @@ class CountryController extends Controller
     {
         $updated = $this->countryService->update($country, $request->validated());
 
-        return $this->success(new CountryResource($updated),  'Country updated successfully.');
+        return $this->success(new CountryResource($updated), 'Country updated successfully.');
     }
 
        public function destroy(Country $country): JsonResponse
