@@ -16,6 +16,10 @@ class PriceService
         return Price::with('category')->get();
     }
 
+    public function getPriceByCategoryId(string $id) 
+    {
+        return Price::where('category_id', $id)->firstOrFail()->id;
+    }
     public function getPriceById(string $id)
     {
         return Price::with('category')->findOrFail($id);

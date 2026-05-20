@@ -13,7 +13,25 @@ class CategoryService
 
     public function getAllCategory()
     {
-        return Category::all();
+        return Category::with('prices')
+            ->withCount('orders')
+            ->withSum('orders', 'weight')
+            ->with(['orders.invoice'])
+            ->get()
+            ->map(function ($category) {
+                $totalAmount = $category->orders
+                    ->whereNotNull('invoice')
+                    ->sum(fn($order) => $order->invoice->amountTo_pay);
+
+                return [
+                    'id' => $category->id,
+                    'category' => $category->category,
+                    'prices' => $category->prices,
+                    'total_orders' => $category->orders_count,
+                    'total_kg' => $category->orders_sum_weight ?? 0,
+                    'total_amount' => $totalAmount,
+                ];
+            });
     }
 
     public function getCategoryById(string $id)
