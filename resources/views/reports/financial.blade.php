@@ -57,7 +57,11 @@
     </div>
    <div class="summary-box">
         <span class="s-label">Tipo de entrega</span>
+<<<<<<< HEAD
+        <span class="s-value red" style="font-size: 10px;">{{'Expresso: ' . $summary['total_express'] }}</span>
+=======
         <span class="s-value red" style="font-size: 10px;">{{'Drop off: ' . $summary['total_express'] }}</span>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         <span class="s-value green" style="font-size: 10px;">{{'Normal: ' . $summary['total_normal'] }}</span>
     </div>
 </div>
@@ -187,7 +191,11 @@
         : '-' }}
             </td>
 
+<<<<<<< HEAD
+            <td>{{ $order->invoice?->referencie ?? '—' }}</td>
+=======
             <td>{{ $order->invoice?->referencie ?? '-' }}</td>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
             <td>{{ ($order->responsible?->name ?? '') . '' . ($order->responsible?->lastname ?? '') }}</td>
         </tr>
         @empty

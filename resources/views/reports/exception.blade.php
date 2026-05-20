@@ -1,5 +1,7 @@
 @extends('reports.layout')
 
+<<<<<<< HEAD
+=======
 @php
     function translateLevel($level) {
         return match($level) {
@@ -13,6 +15,7 @@
     }
 @endphp
 
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
 @section('content')
 
 {{-- REPORT TITLE --}}
@@ -31,10 +34,17 @@
         <span class="s-label">Sem Cliente</span>
         <span class="s-value {{ $summary['total_without_client'] > 0 ? 'red' : 'green' }}">{{ $summary['total_without_client'] }}</span>
     </div>
+<<<<<<< HEAD
+    <div class="summary-box">
+        <span class="s-label">Sem Factura</span>
+        <span class="s-value {{ $summary['total_without_invoice'] > 0 ? 'red' : 'green' }}">{{ $summary['total_without_invoice'] }}</span>
+    </div>
+=======
     <!-- <div class="summary-box">
         <span class="s-label">Sem Factura</span>
         <span class="s-value {{ $summary['total_without_invoice'] > 0 ? 'red' : 'green' }}">{{ $summary['total_without_invoice'] }}</span>
     </div> -->
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     <div class="summary-box">
         <span class="s-label">Sem Peso Declarado</span>
         <span class="s-value {{ $summary['total_without_declared_weight'] > 0 ? 'red' : 'green' }}">{{ $summary['total_without_declared_weight'] }}</span>
@@ -57,7 +67,11 @@
     </div>
 </div>
 
+<<<<<<< HEAD
+{{-- ── SECTION 1: WITHOUT CLIENT ──────────────────────────────── --}}
+=======
 {{-- === SECTION 1: WITHOUT CLIENT ========= --}}
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
 <div class="exc-header">
     <div class="exc-header-title">1. Encomendas sem Cliente</div>
     <div class="exc-count">
@@ -88,17 +102,65 @@
             <td>{{ $order->reception_date?->format('d/m/Y') }}</td>
             <td>{{ $order->weight }}</td>
             <td>{{ $order->store?->name ?? '-' }}</td>
+<<<<<<< HEAD
+            <td>{{ $order->responsible?->name ?? '-' }}</td>
+=======
             <td>{{ $order->responsible?->full_name ?? '-' }}</td>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         </tr>
         @endforeach
     </tbody>
 </table>
 @endif
 
+<<<<<<< HEAD
+{{-- ── SECTION 2: WITHOUT INVOICE ─────────────────────────────── --}}
+<div class="exc-header">
+    <div class="exc-header-title">2. Encomendas sem Factura</div>
+    <div class="exc-count">
+        <span class="{{ $summary['total_without_invoice'] === 0 ? 'zero' : '' }}">
+            {{ $summary['total_without_invoice'] }} ocorrência(s)
+        </span>
+    </div>
+</div>
+@if($orders_without_invoice->isEmpty())
+<div class="empty-state">Nenhuma ocorrência encontrada.</div>
+@else
+<table class="dt" style="margin-bottom:16px">
+    <thead>
+        <tr>
+            <th>Tracking</th>
+            <th>Cliente</th>
+            <th>Destino</th>
+            <th>Data Recepção</th>
+            <th>Peso (kg)</th>
+            <th>Responsável</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($orders_without_invoice as $order)
+        <tr>
+            <td>{{ $order->tracking }}</td>
+            <td>{{ $order->client?->full_name ?? '-' }}</td>
+            <td>{{ $order->destination }}</td>
+            <td>{{ $order->reception_date?->format('d/m/Y') }}</td>
+            <td>{{ $order->weight }}</td>
+            <td>{{ $order->responsible?->name ?? '-' }}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
+
+{{-- ── SECTION 3: WITHOUT DECLARED WEIGHT ─────────────────────── --}}
+<div class="exc-header">
+    <div class="exc-header-title">3. Encomendas sem Peso Declarado</div>
+=======
    
 {{-- == SECTION 3: WITHOUT DECLARED WEIGHT ===== --}}
 <div class="exc-header">
     <div class="exc-header-title">2. Encomendas sem Peso Declarado</div>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     <div class="exc-count">
         <span class="{{ $summary['total_without_declared_weight'] === 0 ? 'zero' : '' }}">
             {{ $summary['total_without_declared_weight'] }} ocorrência(s)
@@ -123,20 +185,34 @@
         @foreach($orders_without_declared_weight as $order)
         <tr>
             <td>{{ $order->tracking }}</td>
+<<<<<<< HEAD
+            <td>{{ $order->client?->full_name ?? '-' }}</td>
+            <td>{{ $order->destination }}</td>
+            <td>{{ $order->reception_date?->format('d/m/Y') }}</td>
+            <td>{{ $order->weight }}</td>
+            <td>{{ $order->responsible?->name ?? '-' }}</td>
+=======
             <td>{{ ($order['client']['name'] ?? '-') . ' ' . ($order['client']['lastname'] ?? '-') }}</td>
             <td>{{ $order->destination }}</td>
             <td>{{ $order->reception_date?->format('d/m/Y') }}</td>
             <td>{{ $order->weight }}</td>
             <td>{{ $order->responsible?->full_name ?? '-' }}</td>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         </tr>
         @endforeach
     </tbody>
 </table>
 @endif
 
+<<<<<<< HEAD
+{{-- ── SECTION 4: WITHOUT STATUS ───────────────────────────────── --}}
+<div class="exc-header">
+    <div class="exc-header-title">4. Encomendas sem Estado Registado</div>
+=======
 {{-- === SECTION 4: WITHOUT STATUS ==== --}}
 <div class="exc-header">
     <div class="exc-header-title">3. Encomendas sem Estado Registado</div>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     <div class="exc-count">
         <span class="{{ $summary['total_without_status'] === 0 ? 'zero' : '' }}">
             {{ $summary['total_without_status'] }} ocorrência(s)
@@ -161,20 +237,34 @@
         @foreach($orders_without_status as $order)
         <tr>
             <td>{{ $order->tracking }}</td>
+<<<<<<< HEAD
+            <td>{{ $order->client?->full_name ?? '-' }}</td>
+            <td>{{ $order->destination }}</td>
+            <td>{{ $order->reception_date?->format('d/m/Y') }}</td>
+            <td>{{ $order->weight }}</td>
+            <td>{{ $order->responsible?->name ?? '-' }}</td>
+=======
            <td>{{ ($order['client']['name'] ?? '-') . ' ' . ($order['client']['lastname'] ?? '-') }}</td>
             <td>{{ $order->destination }}</td>
             <td>{{ $order->reception_date?->format('d/m/Y') }}</td>
             <td>{{ $order->weight }}</td>
             <td>{{ $order->responsible?->full_name ?? '-' }}</td>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         </tr>
         @endforeach
     </tbody>
 </table>
 @endif
 
+<<<<<<< HEAD
+{{-- ── SECTION 5: INVOICES WITH NULL STATUS ───────────────────── --}}
+<div class="exc-header">
+    <div class="exc-header-title">5. Facturas com Estado de Pagamento em Falta</div>
+=======
 {{-- ==== SECTION 5: INVOICES WITH NULL STATUS ==== --}}
 <div class="exc-header">
     <div class="exc-header-title">4. Facturas com Estado de Pagamento em Falta</div>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     <div class="exc-count">
         <span class="{{ $summary['total_invoices_null_status'] === 0 ? 'zero' : '' }}">
             {{ $summary['total_invoices_null_status'] }} ocorrência(s)
@@ -199,7 +289,11 @@
         @foreach($invoices_with_null_status as $order)
         <tr>
             <td>{{ $order->tracking }}</td>
+<<<<<<< HEAD
+            <td>{{ $order->client?->full_name ?? '-' }}</td>
+=======
             <td> {{ ($order['client']['name'] ?? '-') . ' ' . ($order['client']['lastname'] ?? '') }}</td>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
             <td>{{ $order->destination }}</td>
             <td>{{ $order->reception_date?->format('d/m/Y') }}</td>
             <td>{{ number_format($order->invoice?->amountTo_pay ?? 0, 2) }}</td>
@@ -212,7 +306,11 @@
 
 {{-- SECTION 6: DELAYS --}}
 <div class="exc-header">
+<<<<<<< HEAD
+    <div class="exc-header-title">6. Encomendas em Atraso</div>
+=======
     <div class="exc-header-title">5. Encomendas em Atraso</div>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     <div class="exc-count">
         <span class="{{ $delays['summary']['total_delayed'] === 0 ? 'zero' : '' }}">
             {{ $delays['summary']['total_delayed'] }} em atraso
@@ -274,9 +372,15 @@
 </table>
 @endif
 
+<<<<<<< HEAD
+{{-- ── SECTION 7: QUALITY ──────────────────────────────────────── --}}
+<div class="exc-header" style="margin-top:8px">
+    <div class="exc-header-title">7. Índice de Qualidade Operacional</div>
+=======
 {{-- ===== SECTION 7: QUALITY ======= --}}
 <div class="exc-header" style="margin-top:8px">
     <div class="exc-header-title">8. Índice de Qualidade Operacional</div>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     <div class="exc-count">
         @php
         $scoreVal = $quality['score']['score'];
@@ -296,6 +400,25 @@
         <span class="s-value">{{ $quality['summary']['total_observations'] }}</span>
     </div>
     <div class="summary-box">
+<<<<<<< HEAD
+        <span class="s-label">Good</span>
+        <span class="s-value green">{{ $quality['summary']['total_good'] }}</span>
+    </div>
+    <div class="summary-box">
+        <span class="s-label">Medium</span>
+        <span class="s-value" style="color:#8a6200">{{ $quality['summary']['total_medium'] }}</span>
+    </div>
+    <div class="summary-box">
+        <span class="s-label">Bad</span>
+        <span class="s-value red">{{ $quality['summary']['total_bad'] }}</span>
+    </div>
+    <div class="summary-box">
+        <span class="s-label">Critical</span>
+        <span class="s-value" style="color:#3d0000">{{ $quality['summary']['total_critical'] }}</span>
+    </div>
+    <div class="summary-box">
+        <span class="s-label">Score</span>
+=======
         <span class="s-label">Bom</span>
         <span class="s-value green">{{ $quality['summary']['total_good'] }}</span>
     </div>
@@ -313,6 +436,7 @@
     </div>
     <div class="summary-box">
         <span class="s-label">Pontuação</span>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         <span class="s-value" style="color:#962479">{{ $quality['score']['percentage'] }}%</span>
     </div>
 </div>
@@ -330,11 +454,19 @@
             <th>Colaborador</th>
             <th>Código</th>
             <th>Total Obs.</th>
+<<<<<<< HEAD
+            <th>Good</th>
+            <th>Medium</th>
+            <th>Bad</th>
+            <th>Critical</th>
+            <th>Score</th>
+=======
             <th>Bom</th>
             <th>Médio</th>
             <th>MAU</th>
             <th>Crítico</th>
             <th>Pontuação</th>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
             <th>Classificação</th>
         </tr>
     </thead>
@@ -370,7 +502,11 @@
 <table class="dt" style="margin-bottom:8px">
     <thead>
         <tr>
+<<<<<<< HEAD
+            <th colspan="4" style="background:#6b1a50">
+=======
             <th colspan="4" style="background:#ffff; color: #962479;" >
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
                 {{ $order['tracking'] }}
                 &nbsp;|&nbsp; {{ $order['client'] }}
                 &nbsp;|&nbsp; {{ $order['destination'] }}
@@ -388,13 +524,20 @@
     <tbody>
         @foreach($order['observations'] as $obs)
         <tr>
+<<<<<<< HEAD
+            <td><span class="badge badge-{{ $obs['level'] }}">{{ ucfirst($obs['level']) }}</span></td>
+=======
            
             <td><span class="badge badge-{{ $obs['level'] }}">{{ translateLevel($obs['level']) }}</span></td>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
             <td>{{ $obs['description'] }}</td>
             <td>{{ $obs['created_by'] }}</td>
             <td>{{ $obs['created_at'] }}</td>
         </tr>
+<<<<<<< HEAD
+=======
         <br>
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         @endforeach
     </tbody>
 </table>

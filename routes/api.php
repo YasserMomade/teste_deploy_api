@@ -33,7 +33,7 @@ Route::prefix('v1')->group(function () {
         ->name('auth.login');
 
         Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
-
+    
   Route::apiResource('/orders', OrderController::class);
          Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 

@@ -5,6 +5,13 @@ namespace App\Exports\Sheets;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithStyles;
+<<<<<<< HEAD
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, ShouldAutoSize
+{
+=======
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -24,11 +31,26 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
     private const LIGHT = 'F9F0F6';
     private const GREY = 'F5F5F5';
 
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     public function __construct(private readonly array $summary) {}
 
     public function array(): array
     {
         return [
+<<<<<<< HEAD
+            ['Resumo Geral de Excepções', ''],
+            ['', ''],
+            ['Indicador', 'Total'],
+            ['Encomendas sem Cliente', $this->summary['total_without_client']],
+            ['Encomendas sem Factura', $this->summary['total_without_invoice']],
+            ['Encomendas sem Peso Declarado', $this->summary['total_without_declared_weight']],
+            ['Encomendas sem Estado', $this->summary['total_without_status']],
+            ['Facturas com Estado em Falta', $this->summary['total_invoices_null_status']],
+            ['Encomendas em Atraso', $this->summary['total_delayed']],
+            ['', ''],
+            ['Índice de Qualidade (0-4)', $this->summary['quality_score']],
+            ['Classificação de Qualidade', $this->summary['quality_label']],
+=======
             
             ['PORTADOR DIÁRIO - RELATÓRIO DE EXCEPÇÕES', '', ''],
 
@@ -60,6 +82,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
             // Rows 15-16 - quality data
             ['Pontuacção (0 – 4.00)', number_format($this->summary['quality_score'], 2), ''],
             ['Classificação', $this->summary['quality_label'], ''],
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         ];
     }
 
@@ -68,6 +91,13 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
         return 'Resumo';
     }
 
+<<<<<<< HEAD
+    public function styles(Worksheet $sheet): array
+    {
+        return [
+            1 => ['font' => ['bold' => true, 'size' => 13]],
+            3 => ['font' => ['bold' => true]],
+=======
     public function columnWidths(): array
     {
         return ['A' => 38, 'B' => 14, 'C' => 20];
@@ -159,6 +189,7 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
                     ]);
                 }
             },
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         ];
     }
 }

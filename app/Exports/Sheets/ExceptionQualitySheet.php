@@ -2,6 +2,16 @@
 
 namespace App\Exports\Sheets;
 
+<<<<<<< HEAD
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+class ExceptionQualitySheet implements FromArray, WithTitle, WithStyles, ShouldAutoSize
+{
+=======
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -35,11 +45,66 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
     private array $obsHeaderRows = [];
     private int   $accentRow = 0;
 
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     public function __construct(private readonly array $quality) {}
 
     public function array(): array
     {
         $rows = [];
+<<<<<<< HEAD
+
+      
+        $rows[] = ['Índice de Qualidade Operacional', ''];
+        $rows[] = ['Score', $this->quality['score']['score'] . ' / 4.00'];
+        $rows[] = ['Percentagem', $this->quality['score']['percentage'] . '%'];
+        $rows[] = ['Classificação', $this->quality['score']['label']];
+        $rows[] = ['', ''];
+
+    
+        $rows[] = ['Resumo de Observações', ''];
+        $rows[] = ['Total', $this->quality['summary']['total_observations']];
+        $rows[] = ['Good', $this->quality['summary']['total_good']];
+        $rows[] = ['Medium', $this->quality['summary']['total_medium']];
+        $rows[] = ['Bad', $this->quality['summary']['total_bad']];
+        $rows[] = ['Critical', $this->quality['summary']['total_critical']];
+        $rows[] = ['', ''];
+
+     
+        if (! empty($this->quality['by_responsible'])) {
+            $rows[] = ['Qualidade por Colaborador', '', '', '', '', '', '', ''];
+            $rows[] = ['Colaborador', 'Código', 'Total', 'Good', 'Medium', 'Bad', 'Critical', 'Score', 'Classificação'];
+
+            foreach ($this->quality['by_responsible'] as $row) {
+                $rows[] = [
+                    $row['responsible'],
+                    $row['user_code'],
+                    $row['total'],
+                    $row['good'],
+                    $row['medium'],
+                    $row['bad'],
+                    $row['critical'],
+                    $row['score'] . '/4',
+                    $row['score_label'],
+                ];
+            }
+
+            $rows[] = ['', ''];
+        }
+
+        
+        if (! empty($this->quality['critical_and_bad_orders'])) {
+            $rows[] = ['Encomendas com Observações Críticas ou Más', '', '', '', ''];
+            $rows[] = ['Tracking', 'Cliente', 'Destino', 'Serviço', 'Responsável', 'Nível', 'Descrição', 'Registado por', 'Data'];
+
+            foreach ($this->quality['critical_and_bad_orders'] as $order) {
+                foreach ($order['observations'] as $obs) {
+                    $rows[] = [
+                        $order['tracking'],
+                        $order['client'],
+                        $order['destination'],
+                        $order['service_type'],
+                        $order['responsible'],
+=======
         $rowNum = 1;
 
         // ==== Score summary ====
@@ -155,10 +220,28 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                 foreach ($order['observations'] as $obs) {
                     $this->criticalObsRows[] = ['row' => $rowNum, 'level' => $obs['level']];
                     $rows[] = [
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
                         ucfirst($obs['level']),
                         $obs['description'],
                         $obs['created_by'],
                         $obs['created_at'],
+<<<<<<< HEAD
+                    ];
+                }
+            }
+
+            $rows[] = ['', ''];
+        }
+
+      
+        if (! empty($this->quality['trend'])) {
+            $rows[] = ['Tendência de Qualidade por Dia', '', '', '', ''];
+            $rows[] = ['Data', 'Good', 'Medium', 'Bad', 'Critical'];
+
+            foreach ($this->quality['trend'] as $row) {
+                $rows[] = [
+                    \Carbon\Carbon::parse($row['date'])->format('d/m/Y'),
+=======
                         '', '', '', '', '',
                     ];
                     $rowNum++;
@@ -183,10 +266,17 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                 $this->trendRows[] = $rowNum;
                 $rows[] = [
                     Carbon::parse($row['date'])->format('d/m/Y'),
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
                     $row['good'],
                     $row['medium'],
                     $row['bad'],
                     $row['critical'],
+<<<<<<< HEAD
+                ];
+            }
+        }
+
+=======
                     '', '', '', '',
                 ];
                 $rowNum++;
@@ -199,6 +289,7 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
         $this->accentRow = $rowNum;
         $rows[] = ['', '', '', '', '', '', '', '', ''];
 
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         return $rows;
     }
 
@@ -207,6 +298,12 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
         return 'Qualidade';
     }
 
+<<<<<<< HEAD
+    public function styles(Worksheet $sheet): array
+    {
+        return [
+            1 => ['font' => ['bold' => true, 'size' => 12]],
+=======
     public function columnWidths(): array
     {
         return ['A' => 28, 'B' => 28, 'C' => 20, 'D' => 20, 'E' => 14, 'F' => 10, 'G' => 10, 'H' => 12, 'I' => 16];
@@ -357,6 +454,7 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                     $sheet->getRowDimension($this->accentRow)->setRowHeight(4);
                 }
             },
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         ];
     }
 }

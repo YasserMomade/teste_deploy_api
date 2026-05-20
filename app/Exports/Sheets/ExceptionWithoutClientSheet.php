@@ -5,6 +5,14 @@ namespace App\Exports\Sheets;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+<<<<<<< HEAD
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
+class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHeadings, WithStyles, ShouldAutoSize
+{
+=======
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -20,6 +28,7 @@ class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHead
     private const WHITE = 'FFFFFF';
     private const LIGHT = 'F9F0F6';
 
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     public function __construct(private readonly mixed $orders) {}
 
     public function collection()
@@ -27,10 +36,17 @@ class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHead
         return collect($this->orders)->map(fn($order) => [
             $order->tracking,
             $order->destination,
+<<<<<<< HEAD
+            $order->reception_date?->format('d/m/Y'),
+            $order->weight,
+            $order->store?->name ?? '—',
+            $order->responsible?->name ?? '—',
+=======
             $order->reception_date?->format('d/m/Y') ?? '-',
             $order->weight,
             $order->store?->name ?? '-',
             $order->responsible?->full_name ?? '-',
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         ]);
     }
 
@@ -44,6 +60,11 @@ class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHead
         return 'Sem Cliente';
     }
 
+<<<<<<< HEAD
+    public function styles(Worksheet $sheet): array
+    {
+        return [1 => ['font' => ['bold' => true]]];
+=======
     public function columnWidths(): array
     {
         return ['A' => 22, 'B' => 20, 'C' => 16, 'D' => 12, 'E' => 20, 'F' => 22];
@@ -93,5 +114,6 @@ class ExceptionWithoutClientSheet implements FromCollection, WithTitle, WithHead
 
             },
         ];
+>>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
     }
 }

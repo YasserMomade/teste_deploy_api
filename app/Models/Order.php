@@ -86,4 +86,5 @@ use HasFactory;
     {
         return $this->hasMany(File::class);
     }
+
 }
