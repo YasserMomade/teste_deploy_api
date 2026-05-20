@@ -173,21 +173,12 @@
             <td>{{ $order->origin }}</td>
             <td>{{ $order->destination }}</td>
             <td>{{ \Carbon\Carbon::parse($order['reception_date'])->format('d/m/Y') }}</td>
-<<<<<<< HEAD
-            <td>{{ $order->store?->name ?? '—' }}</td>
-            <td>{{ $order->volume_number }}</td>
-            <td>{{ $order->weight }}</td>
-            <td>{{ $order->declared_weight ?? '—' }}</td>
-            <td>{{ $order->latestStatus?->descryption ? str_replace('_', ' ', $order->latestStatus->descryption) : '—' }}</td>
-            <td>{{ $order->responsible?->name ?? '—' }}</td>
-=======
             <td>{{ $order->store?->name ?? '-' }}</td>
             <td>{{ $order->volume_number }}</td>
             <td>{{ $order->weight }}</td>
             <td>{{ $order->declared_weight ?? '-' }}</td>
             <td>{{ $order->latestStatus?->descryption ? str_replace('_', ' ', $order->latestStatus->descryption) : '-' }}</td>
             <td>{{ $order->responsible?->full_name ?? '-' }}</td>
->>>>>>> 88c6fdd8e6eff657ef79fa59c15942cbc1402a9e
         </tr>
         @empty
         <tr>
