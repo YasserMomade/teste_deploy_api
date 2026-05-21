@@ -31,7 +31,7 @@ class StoreCostumer extends FormRequest
             'orders_request' => 'required|array|min:1',
                 'orders_request.*.description' => 'required|string',
                 'orders_request.*.quantity' => 'required|integer|min:1',
-                'orders_request.*.store_id' => 'required|exists:stores,id',
+                'orders_request.*.store_name' => 'required|string',
         ];
     }
 }

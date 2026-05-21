@@ -16,7 +16,7 @@ class CategoryService
         return Category::with('prices')
             ->withCount('orders')
             ->withSum('orders', 'weight')
-            ->with(['orders.invoice'])
+            ->with(['orders.invoice'])  
             ->get()
             ->map(function ($category) {
                 $totalAmount = $category->orders

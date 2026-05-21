@@ -13,7 +13,9 @@ class CostumerService
 
     public function getAllCostumers()
     {
-        return Costumer::with('orderRequest')->get();
+        return Costumer::with('orderRequest')
+            ->latest()
+            ->get();
     }
 
     public function getCostumerById(int $id): ?Costumer
