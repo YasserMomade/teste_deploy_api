@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use App\Services\OrderService;
 use App\Services\InvoiceService;
 use App\Services\StatusService;
+use App\Services\ClientService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Order\StoreOrder;
 use App\Http\Controllers\Controller;
@@ -19,11 +20,12 @@ class OrderController extends Controller
     protected $orderService;
     protected $invoiceService;
 
-    public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService)
+    public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService, ClientService $clientService)
     {
         $this->orderService = $orderService;
         $this->invoiceService = $invoiceService;
         $this->statusService = $statusService;
+        $this->clientService = $clientService;
     }
 
 
@@ -40,14 +42,26 @@ class OrderController extends Controller
     public function store(StoreOrder $request): JsonResponse
     {
         try {
+
+            // cliente
+            $data = $request->validated();
+
+            $name = $data['name'];
+            $lastname = $data['lastname'];
+            
+            $client = $this->clientService->createClient($name, $lastname);
+
+            // order
             $order = $this->orderService->createOrder($request->validated());
 
             $order->load(['category.prices']);
 
+            //Invoice
             $weight = $order->weight;
             $price = $order->category->prices->first()?->amount ?? 0;
             $amountToPay = $weight * $price;
 
+        
             $reference = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
             $invoiceData = [
                 "amountTo_pay" => $amountToPay,
@@ -58,6 +72,7 @@ class OrderController extends Controller
             ];
             $invoice = $this->invoiceService->createInvoice($invoiceData);
 
+            //status
             $responsible_id = $order->responsible->id;
             $order_id = $order->id;
             $statusData = [

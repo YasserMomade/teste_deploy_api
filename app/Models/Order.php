@@ -26,7 +26,7 @@ use HasFactory;
 	    'category_id',
         'responsible_id',
         'invoice_id',
-        'store_id',
+        'store_id'
     ];
 
     protected function casts(): array
