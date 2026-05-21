@@ -53,8 +53,8 @@ class CostumerController extends Controller
                 $this->orderRequestService->createOrder([
                     "description" => $order_request['description'],
                     "quantity" => $order_request['quantity'],
+                    "store_name" => $order_request['store_name'],
                     "costumer_id" => $costumer->id,
-                    "store_id" => $order_request['store_id'],
                 ]);
             }
 

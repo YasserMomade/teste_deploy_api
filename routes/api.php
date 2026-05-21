@@ -32,7 +32,10 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
-        Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+
+    Route::apiResource('/costumer', CostumerController::class);
+
     
   Route::apiResource('/orders', OrderController::class);
          Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
@@ -54,7 +57,6 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('/status', StatusController::class);
         
-        Route::apiResource('/costumer', CostumerController::class);
 
         Route::apiResource('/orderRequest', OrdersRequestController::class);
         

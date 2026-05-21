@@ -10,7 +10,7 @@ class Orders_request extends Model
         'description',
         'quantity',
         'costumer_id',
-        'store_id'
+        'store_name'
     ];
 
     public function costumer() {

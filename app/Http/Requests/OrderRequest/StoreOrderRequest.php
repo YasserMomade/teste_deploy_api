@@ -26,7 +26,7 @@ class StoreOrderRequest extends FormRequest
             'description' => 'required|string',
             'quantity' => 'required|numeric',
             'costumer_id' => 'required|exists:costumers,id',
-            'store_id' => 'required|exists:stores,id',
+            'store_name' => 'required|string',
         ];
     }
 }
