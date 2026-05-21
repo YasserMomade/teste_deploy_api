@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('description');
             $table->integer('quantity');
+            $table->string('store_name');
             $table->timestamps();
             
-            $table->foreignId('store_id')->constrained('stores');
+           
             $table->foreignId('costumer_id')->constrained('costumers')->cascadeOnDelete();
         });
     }
