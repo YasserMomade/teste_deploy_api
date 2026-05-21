@@ -18,4 +18,10 @@ class Status extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function responsible()
+{
+    return $this->belongsTo(User::class, 'responsible_id');
+}
+
 }

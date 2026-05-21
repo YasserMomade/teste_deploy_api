@@ -20,7 +20,7 @@ class OrderService
             'responsible',
             'category.prices',
             'invoice',
-            'status',
+            'status.responsible',
             'store',
             'file'
         ])->paginate($getPaginate);
@@ -35,7 +35,7 @@ class OrderService
             'responsible',
             'category.prices',
             'invoice',
-            'status',
+            'status.responsible',
             'store',
             'file'
         ])->findOrFail($id);
@@ -49,7 +49,7 @@ class OrderService
             'responsible',
             'category.prices',
             'invoice',
-            'status',
+            'status.responsible',
             'store',
             'file'
         ])
