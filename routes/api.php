@@ -58,7 +58,7 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('/orderRequest', OrdersRequestController::class);
         
-        Route::apiResource('/file', FileController::class);
+        Route::apiResource('/files', FileController::class);
          Route::apiResource('countries', CountryController::class);
 
         Route::apiResource('stores', StoreController::class);

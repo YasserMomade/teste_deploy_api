@@ -12,22 +12,88 @@ class OrderService
         return Order::create($data);
     }
 
-    public function getAllOrders(int $getPaginate = 15)
+    public function getAllOrders($request, int $getPaginate = 15)
     {
-        return Order::with([
+        $query = Order::with([
             'client',
             'category',
             'responsible',
             'category.prices',
             'invoice',
-            'status.responsible',
+            'latestStatus.responsible',
             'store',
             'file'
-        ])->paginate($getPaginate);
+        ]);
+
+        // Pesquisa
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('description', 'like', "%{$search}%")
+                    ->orWhere('tracking', 'like', "%{$search}%")
+
+                    ->orWhereHas('client', function ($client) use ($search) {
+
+                        $client->where('name', 'like', "%{$search}%")
+                            ->orWhere('lastname', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('destination')) {
+
+            $query->where('destination', $request->destination);
+        }
+        if ($request->filled('service_type')) {
+
+            $query->where('service_type', $request->service_type);
+        }
+
+        if ($request->filled('payment_status')) {
+
+            $query->whereHas('invoice', function ($invoice) use ($request) {
+
+                $invoice->where(
+                    'payment_status',
+                    $request->payment_status
+                );
+            });
+        }
+        if ($request->filled('order_status')) {
+
+            $query->whereHas('latestStatus', function ($status) use ($request) {
+
+                $status->where(
+                    'descryption',
+                    $request->order_status
+                );
+            });
+        }
+        if ($request->filled('start_date')) {
+
+            $query->whereDate(
+                'reception_date',
+                '>=',
+                $request->start_date
+            );
+        }
+        if ($request->filled('end_date')) {
+
+            $query->whereDate(
+                'reception_date',
+                '<=',
+                $request->end_date
+            );
+        }
+        return $query->latest()->paginate($getPaginate);
     }
 
 
-    public function getOrderById(int $id): ?Order   
+
+    public function getOrderById(int $id): ?Order
     {
         return Order::with([
             'client',
@@ -53,8 +119,8 @@ class OrderService
             'store',
             'file'
         ])
-        ->where('tracking', $tracking)
-        ->firstOrFail();
+            ->where('tracking', $tracking)
+            ->firstOrFail();
     }
 
     public function statisc()
@@ -91,7 +157,4 @@ class OrderService
     {
         $order->delete();
     }
-
-   
-
 }

@@ -15,7 +15,7 @@ use App\Http\Requests\Order\UpdateOrderRequest;
 class OrderController extends Controller
 {
 
-use ApiResponse;
+    use ApiResponse;
     protected $orderService;
     protected $invoiceService;
 
@@ -24,15 +24,14 @@ use ApiResponse;
         $this->orderService = $orderService;
         $this->invoiceService = $invoiceService;
         $this->statusService = $statusService;
-    }   
+    }
 
- 
-    public function index() : JsonResponse
+
+    public function index(Request $request): JsonResponse
     {
         try {
-            $orders = $this->orderService->getAllOrders();
+            $orders = $this->orderService->getAllOrders($request);
             return $this->success($orders);
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -42,13 +41,13 @@ use ApiResponse;
     {
         try {
             $order = $this->orderService->createOrder($request->validated());
-           
+
             $order->load(['category.prices']);
 
             $weight = $order->weight;
             $price = $order->category->prices->first()?->amount ?? 0;
             $amountToPay = $weight * $price;
-            
+
             $reference = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
             $invoiceData = [
                 "amountTo_pay" => $amountToPay,
@@ -78,7 +77,6 @@ use ApiResponse;
                 'invoice' => $invoice,
                 'status' => $status
             ]);
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
