@@ -102,6 +102,7 @@ class OrderService
             'category.prices',
             'invoice',
             'status.responsible',
+            'latestStatus.responsible', 
             'store',
             'file'
         ])->findOrFail($id);
@@ -116,6 +117,7 @@ class OrderService
             'category.prices',
             'invoice',
             'status.responsible',
+            'latestStatus.responsible',
             'store',
             'file'
         ])
