@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use App\Services\OrderService;
 use App\Services\InvoiceService;
 use App\Services\StatusService;
+use App\Services\ClientService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Order\StoreOrder;
 use App\Http\Controllers\Controller;
@@ -19,11 +20,12 @@ class OrderController extends Controller
     protected $orderService;
     protected $invoiceService;
 
-    public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService)
+    public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService, ClientService $clientService)
     {
         $this->orderService = $orderService;
         $this->invoiceService = $invoiceService;
         $this->statusService = $statusService;
+        $this->clientService = $clientService;
     }
 
 
@@ -40,14 +42,47 @@ class OrderController extends Controller
     public function store(StoreOrder $request): JsonResponse
     {
         try {
-            $order = $this->orderService->createOrder($request->validated());
+            // clients
+            $data = $request->validated();
+
+            $name = $data['name'];
+            $lastname = $data['lastname'];
+
+            $client = [
+                "name" => $data['name'],
+                "lastname" => $data['lastname'],
+            ];
+            
+            $client = $this->clientService->createClient($client);
+
+            // order
+            $orderData = [
+                "client_id" => $client->id,
+                "description" => $data['description'],
+                "tracking" => $data['tracking'],
+                "origin" => $data['origin'],
+                "destination" => $data['destination'],
+                "reception_date" => $data['reception_date'],
+                "service_type" => $data['service_type'],
+                "volume_number" => $data['volume_number'],
+                "weight" => $data['weight'],
+                "declared_weight" => $data['declared_weight'],
+                "category_id" => $data['category_id'],
+                "responsible_id" => $data['responsible_id'],
+                "invoice_id" => null,
+                "store_id" => $data['store_id'],
+            ];
+
+            $order = $this->orderService->createOrder($orderData);
 
             $order->load(['category.prices']);
 
+            //Invoice
             $weight = $order->weight;
             $price = $order->category->prices->first()?->amount ?? 0;
             $amountToPay = $weight * $price;
 
+        
             $reference = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
             $invoiceData = [
                 "amountTo_pay" => $amountToPay,
@@ -58,6 +93,7 @@ class OrderController extends Controller
             ];
             $invoice = $this->invoiceService->createInvoice($invoiceData);
 
+            //status
             $responsible_id = $order->responsible->id;
             $order_id = $order->id;
             $statusData = [

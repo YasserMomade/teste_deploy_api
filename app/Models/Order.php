@@ -26,15 +26,15 @@ use HasFactory;
 	    'category_id',
         'responsible_id',
         'invoice_id',
-        'store_id',
+        'store_id'
     ];
 
     protected function casts(): array
-{
-    return [
-        'reception_date' => 'datetime',
-    ];
-}
+    {
+        return [
+            'reception_date' => 'datetime',
+        ];
+    }
 
     public function client()
     {
