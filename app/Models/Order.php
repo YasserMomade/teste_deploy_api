@@ -30,11 +30,11 @@ use HasFactory;
     ];
 
     protected function casts(): array
-{
-    return [
-        'reception_date' => 'datetime',
-    ];
-}
+    {
+        return [
+            'reception_date' => 'datetime',
+        ];
+    }
 
     public function client()
     {

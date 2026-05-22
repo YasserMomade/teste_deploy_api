@@ -36,6 +36,8 @@ class StoreOrder extends FormRequest
             'category_id' => 'required|exists:categories,id',
             'responsible_id' => 'nullable|exists:users,id',
             'store_id' => 'nullable|exists:stores,id',
+            'name' => 'required|string',
+            'lastname' => 'required|string',
         ];
     }
 }
