@@ -20,7 +20,9 @@ class CostumerService
 
     public function getCostumerById(int $id): ?Costumer
     {
-        return Costumer::findOrFail($id);
+        return Costumer::with('orderRequest')
+             ->latest()
+             ->findOrFail($id);
     }
 
     public function updateCostumer(Costumer $Costumer, array $data): Costumer

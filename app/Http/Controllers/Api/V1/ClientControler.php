@@ -7,6 +7,8 @@ use Illuminate\Http\JsonResponse;
 use App\Services\ClientService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Client as ClientRequest;
+use App\Http\Requests\UpdateClient;
+
 use App\Http\Controllers\Controller;
 
 class ClientControler extends Controller
@@ -55,7 +57,7 @@ class ClientControler extends Controller
         }
     }
 
-    public function update(ClientRequest $request, int $id): JsonResponse
+    public function update(UpdateClient $request, int $id): JsonResponse
     {
         try {
             $client = $this->clientService->getClientById($id);

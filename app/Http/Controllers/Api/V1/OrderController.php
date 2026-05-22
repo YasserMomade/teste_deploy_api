@@ -43,20 +43,42 @@ class OrderController extends Controller
     {
         try {
             // cliente
-            // $data = $request->validated();
+            $data = $request->validated();
 
-            // $name = $data['name'];
-            // $lastname = $data['lastname'];
+            $clientId = null;
 
-            // $client = [
-            //     "name" => $data['name'],
-            //     "lastname" => $data['lastname'],
-            // ];
-            
-            // $client = $this->clientService->createClient($client);
+            if (!empty($data['name']) && !empty($data['lastname'])) {
+
+                $client = $this->clientService->createClient([
+                    "name" => $data['name'],
+                    "lastname" => $data['lastname'],
+                ]);
+
+                $clientId = $client->id;
+
+            } else {
+                $clientId = $data['client_id'] ?? null;
+            }
 
             // order
-            $order = $this->orderService->createOrder($request->validated());
+           $orderData = [
+                "client_id" => $clientId,
+                "description" => $data['description'],
+                "tracking" => $data['tracking'],
+                "origin" => $data['origin'],
+                "destination" => $data['destination'],
+                "reception_date" => $data['reception_date'],
+                "service_type" => $data['service_type'],
+                "volume_number" => $data['volume_number'],
+                "weight" => $data['weight'],
+                "declared_weight" => $data['declared_weight'],
+                "category_id" => $data['category_id'],
+                "responsible_id" => $data['responsible_id'],
+                "invoice_id" => null,
+                "store_id" => $data['store_id'],
+            ];
+
+            $order = $this->orderService->createOrder($orderData);
 
             $order->load(['category.prices']);
 
