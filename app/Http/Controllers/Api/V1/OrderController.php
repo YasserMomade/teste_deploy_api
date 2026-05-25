@@ -39,25 +39,40 @@ class OrderController extends Controller
         }
     }
 
+    public function indexUnSync(): JsonResponse
+    {
+        try {
+            $orders = $this->orderService->getAllOrdersUnSync();
+            return $this->success($orders);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
     public function store(StoreOrder $request): JsonResponse
     {
         try {
-            // clients
+            // cliente
             $data = $request->validated();
 
-            $name = $data['name'];
-            $lastname = $data['lastname'];
+            $clientId = null;
 
-            $client = [
-                "name" => $data['name'],
-                "lastname" => $data['lastname'],
-            ];
-            
-            $client = $this->clientService->createClient($client);
+            if (!empty($data['name']) && !empty($data['lastname'])) {
+
+                $client = $this->clientService->createClient([
+                    "name" => $data['name'],
+                    "lastname" => $data['lastname'],
+                ]);
+
+                $clientId = $client->id;
+
+            } else {
+                $clientId = $data['client_id'] ?? null;
+            }
 
             // order
-            $orderData = [
-                "client_id" => $client->id,
+           $orderData = [
+                "client_id" => $clientId,
                 "description" => $data['description'],
                 "tracking" => $data['tracking'],
                 "origin" => $data['origin'],
