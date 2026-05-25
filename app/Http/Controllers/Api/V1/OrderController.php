@@ -39,6 +39,16 @@ class OrderController extends Controller
         }
     }
 
+    public function indexUnSync(): JsonResponse
+    {
+        try {
+            $orders = $this->orderService->getAllOrdersUnSync();
+            return $this->success($orders);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
     public function store(StoreOrder $request): JsonResponse
     {
         try {

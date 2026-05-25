@@ -35,9 +35,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
     Route::apiResource('/costumer', CostumerController::class);
-
+       
     
-  Route::apiResource('/orders', OrderController::class);
+        Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
+        Route::apiResource('/orders', OrderController::class);
+
          Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
 
@@ -47,8 +49,6 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('/clients', ClientControler::class);
 
-      
-
         Route::apiResource('/categories', CategoryController::class);
 
         Route::apiResource('/prices', PriceController::class);
@@ -57,13 +57,15 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('/status', StatusController::class);
         
-
         Route::apiResource('/orderRequest', OrdersRequestController::class);
         
         Route::apiResource('/files', FileController::class);
-         Route::apiResource('countries', CountryController::class);
+        
+        Route::apiResource('countries', CountryController::class);
 
         Route::apiResource('stores', StoreController::class);
+
+
 
         Route::prefix('orders/{orderID}/observations')->group(function () {
             Route::get('/', [ObservationController::class, 'index'])->name('observations.index');

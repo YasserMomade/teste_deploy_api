@@ -91,7 +91,21 @@ class OrderService
         return $query->latest()->paginate($getPaginate);
     }
 
+    public function getAllOrdersUnSync()
+    {
+        $query = Order::with([
+            'client',
+            'category',
+            'responsible',
+            'category.prices',
+            'invoice',
+            'latestStatus.responsible',
+            'store',
+            'file'
+        ])->where('sync', false);
 
+        return $query->get();
+    }
 
     public function getOrderById(int $id): ?Order
     {
@@ -151,6 +165,11 @@ class OrderService
     {
         $order->update($data);
         return $order;
+    }
+
+    public function updateMany(array $ids, array $data)
+    {
+        return Order::whereIn('id', $ids)->update($data);
     }
 
     public function deleteOrder(Order $order): void

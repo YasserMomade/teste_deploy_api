@@ -24,7 +24,10 @@ class UpdateClient extends FormRequest
     {
         return [
             'phone' => 'sometimes|string|max:20',
-            'email' => 'sometimes|email|unique:clients,email',
+            'email' => 'sometimes|email',
+            'id_costumer' => ['sometimes', 'integer'],
+            'id_selectedOrder' => ['sometimes', 'array'],
+            'id_selectedOrder.*' => ['integer'],
         ];
     }
 }

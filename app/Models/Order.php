@@ -23,6 +23,7 @@ use HasFactory;
         'volume_number',
         'weight',
         'declared_weight',
+        'sync',
 	    'category_id',
         'responsible_id',
         'invoice_id',
