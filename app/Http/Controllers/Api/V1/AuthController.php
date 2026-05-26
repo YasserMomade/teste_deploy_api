@@ -90,9 +90,40 @@ class AuthController extends Controller
         );
     }
 
+    public function updateMe(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $isAdmin = $user->isAdmin();
+
+        $rules = [
+            'phone' => ['sometimes', 'string', 'max:50'],
+            'password' => ['sometimes', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+        ];
+
+        if ($isAdmin) {
+            $rules['name'] = ['sometimes', 'string', 'max:255'];
+            $rules['lastname'] = ['sometimes', 'string', 'max:255'];
+            $rules['email'] = ['sometimes', 'email', 'max:255', 'unique:users,email,' . $user->id];
+        }
+
+        $validated = $request->validate($rules);
+
+        if (isset($validated['password'])) {
+            $validated['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
+        }
+
+        $user->update($validated);
+        $user->refresh()->load('counter.country');
+
+        return $this->success(
+            new UserResource($user),
+            'Perfil actualizado com sucesso.'
+        );
+    }
+
     private function generateUserCode(RoleEnum $role): string
     {
-        $prefix = match($role) {
+        $prefix = match ($role) {
             RoleEnum::Admin => 'ADM',
             RoleEnum::Manager => 'MGR',
         };
