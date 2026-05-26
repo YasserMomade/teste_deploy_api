@@ -70,16 +70,15 @@ class OrderController extends Controller
                 $clientId = $data['client_id'] ?? null;
             }
 
+            //Trackign
+            $tracking = 'TRK' . strtoupper(bin2hex(random_bytes(5)));
+
             // order
            $orderData = [
                 "client_id" => $clientId,
                 "description" => $data['description'],
-                "tracking" => $data['tracking'],
-                "origin" => $data['origin'],
-                "destination" => $data['destination'],
+                "tracking" => $tracking,
                 "reception_date" => $data['reception_date'],
-                "service_type" => $data['service_type'],
-                "volume_number" => $data['volume_number'],
                 "weight" => $data['weight'],
                 "declared_weight" => $data['declared_weight'],
                 "category_id" => $data['category_id'],
