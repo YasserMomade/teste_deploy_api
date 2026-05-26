@@ -21,7 +21,6 @@ class UpdateUserRequest extends FormRequest
             'lastname'   => ['sometimes', 'string', 'max:255'],
             'phone'      => ['sometimes', 'string', 'max:50'],
             'email'      => ['sometimes', 'email', 'max:255'],
-            'password'   => ['sometimes', 'confirmed', Password::min(8)->mixedCase()->numbers()],
             'role'       => ['sometimes', 'string', Rule::in(RoleEnum::values())],
             'counter_id' => ['sometimes', 'nullable', 'integer', 'exists:counters,id'],
         ];

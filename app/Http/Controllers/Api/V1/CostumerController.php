@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 
 class CostumerController extends Controller
 {
-    use ApiResponse; 
+    use ApiResponse;
 
     protected $costumerService;
 
@@ -23,12 +23,11 @@ class CostumerController extends Controller
         $this->orderRequestService = $orderRequestService;
     }
 
-    public function index() : JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $costumers = $this->costumerService->getAllCostumers();
+            $costumers = $this->costumerService->getAllCostumers($request);
             return $this->success($costumers);
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -39,7 +38,7 @@ class CostumerController extends Controller
         try {
             $data = $request->validated();
 
-            
+
             $costumer = $this->costumerService->createCostumer([
                 "name" => $data['name'],
                 "lastname" => $data['lastname'],
@@ -47,7 +46,7 @@ class CostumerController extends Controller
                 "email" => $data['email'],
             ]);
 
-           
+
             foreach ($data['orders_request'] as $order_request) {
 
                 $this->orderRequestService->createOrder([
@@ -59,7 +58,6 @@ class CostumerController extends Controller
             }
 
             return $this->created($costumer->load('orderRequest'));
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
