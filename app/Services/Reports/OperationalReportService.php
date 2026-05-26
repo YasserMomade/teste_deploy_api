@@ -38,11 +38,11 @@ class OperationalReportService
         return Order::query()
             ->when(
                 isset($filters['date_from']),
-                fn($q) => $q->whereDate('reception_date', '>=', $filters['date_from'])
+                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
             )
             ->when(
                 isset($filters['date_to']),
-                fn($q) => $q->whereDate('reception_date', '<=', $filters['date_to'])
+                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
             )
             ->when(
                 isset($filters['destination']),
