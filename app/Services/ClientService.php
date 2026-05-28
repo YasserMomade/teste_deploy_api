@@ -12,9 +12,9 @@ class ClientService
         return Client::create($data);
     }
 
-   public function getAllClients(int $getPaginate = 6)
+    public function getAllClients($request, int $getPaginate = 6)
     {
-        return Client::query()
+        $query = Client::query()
             ->leftJoin('orders', 'clients.id', '=', 'orders.client_id')
             ->leftJoin('invoices', 'orders.invoice_id', '=', 'invoices.id')
             ->select(
@@ -23,18 +23,38 @@ class ClientService
                 DB::raw('COALESCE(SUM(invoices.amountTo_pay), 0) as total_invested')
             )
             ->groupBy(
-                'clients.id',
-                'clients.name',
-                'clients.lastname',
-                'clients.phone',
-                'clients.email',
-                'clients.created_at',
-                'clients.updated_at',
-                'clients.deleted_at'
-            )
-            ->paginate($getPaginate);
-    }
+                'clients.id', 'clients.name', 'clients.lastname',
+                'clients.phone', 'clients.email',
+                'clients.created_at', 'clients.updated_at', 'clients.deleted_at'
+            );
 
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('clients.name', 'like', "%{$search}%")
+                ->orWhere('clients.lastname', 'like', "%{$search}%")
+                ->orWhere('clients.email', 'like', "%{$search}%")
+                ->orWhere('clients.phone', 'like', "%{$search}%");
+            });
+        }
+        
+        if ($request->filled('start_date'))
+            $query->whereDate('clients.created_at', '>=', $request->start_date);
+
+        if ($request->filled('end_date'))
+            $query->whereDate('clients.created_at', '<=', $request->end_date);
+
+        $stats = [
+            'total_clients' => (clone $query)->get()->count(),
+        ];
+
+        $paginated = $query->latest('clients.created_at')->paginate($getPaginate);
+
+        return [
+            'clients' => $paginated,
+            'statisc' => $stats,
+        ];
+    }
     public function getClientById(int $id): ?Client
     {
         return Client::findOrFail($id);
@@ -46,8 +66,8 @@ class ClientService
         return $client;
     }
 
-    public function deleteClient(string $id): void
+    public function deleteClient(Client $client): void
     {
-        $client->destroy($id);
+        $client->delete();
     }
 }
