@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Services\CategoryService;
 use App\Services\PriceService;
+use App\Http\Requests\Category\StoreCategory;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 
 class CategoryController extends Controller
 {
@@ -22,27 +24,28 @@ class CategoryController extends Controller
         $this->priceService = $priceService;
     }
 
-    public function index()
+    public function index(Request $request): JsonResponse
     {
         try {
-            $categories = $this->categoryService->getAllCategory();
+            $categories = $this->categoryService->getAllCategory($request);
             return $this->success($categories);
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 
-    public function store(Request $request)
+    public function store(StoreCategory $request)
     {
+        $data = $request->validated();
+
         try {
-            $result = DB::transaction(function () use ($request) {
+            $result = DB::transaction(function () use ($data) {
                 $category = $this->categoryService->createCategory([
-                    "category" => $request->category
+                    "category" => $data['category']
                 ]);
 
                 $price = $this->priceService->createPrice([
-                    "amount" => $request->amount,
+                    "amount" => $data['amount'],
                     "min_weight" => 0,
                     "max_weight" => 0,
                     "category_id" => $category->id
@@ -69,18 +72,19 @@ class CategoryController extends Controller
         }
     }
 
-    public function update(Request $request, string $id)
+    public function update(StoreCategory $request, string $id)
     {
+        $data = $request->validated();
         try {
-            $result = DB::transaction(function () use ($request, $id) {
+            $result = DB::transaction(function () use ($data, $id) {
                 $category = $this->categoryService->updateCategory($id, [
-                    "category" => $request->category
+                    "category" => $data['category']
                 ]);
 
                 $price_id = $this->priceService->getPriceByCategoryId($category->id);
 
                 $price = $this->priceService->updatePrice($price_id, [
-                    "amount" => $request->amount,
+                    "amount" => $data['amount'],
                     "min_weight" => 0,
                     "max_weight" => 0,
                 ]);

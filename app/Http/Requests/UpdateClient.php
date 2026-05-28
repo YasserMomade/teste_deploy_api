@@ -25,6 +25,8 @@ class UpdateClient extends FormRequest
         return [
             'phone' => 'sometimes|string|max:20',
             'email' => 'sometimes|email',
+            'name' => 'sometimes|string',
+            'lastname' => 'sometimes|string',
             'id_costumer' => ['sometimes', 'integer'],
             'id_selectedOrder' => ['sometimes', 'array'],
             'id_selectedOrder.*' => ['integer'],

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryService
 {
@@ -11,27 +12,31 @@ class CategoryService
         return Category::create($data);
     }
 
-    public function getAllCategory()
+    public function getAllCategory(Request $request)
     {
-        return Category::with('prices')
+        $query = Category::with('prices')
             ->withCount('orders')
             ->withSum('orders', 'weight')
-            ->with(['orders.invoice'])  
-            ->get()
-            ->map(function ($category) {
-                $totalAmount = $category->orders
-                    ->whereNotNull('invoice')
-                    ->sum(fn($order) => $order->invoice->amountTo_pay);
+            ->with(['orders.invoice']);
 
-                return [
-                    'id' => $category->id,
-                    'category' => $category->category,
-                    'prices' => $category->prices,
-                    'total_orders' => $category->orders_count,
-                    'total_kg' => $category->orders_sum_weight ?? 0,
-                    'total_amount' => $totalAmount,
-                ];
-            });
+        if ($request->filled('search')) {
+            $query->where('category', 'like', '%' . $request->search . '%');
+        }
+
+        return $query->get()->map(function ($category) {
+            $totalAmount = $category->orders
+                ->whereNotNull('invoice')
+                ->sum(fn($order) => $order->invoice->amountTo_pay);
+
+            return [
+                'id'           => $category->id,
+                'category'     => $category->category,
+                'prices'       => $category->prices,        // ← array completo, não [0]
+                'total_orders' => $category->orders_count,
+                'total_kg'     => $category->orders_sum_weight ?? 0,
+                'total_amount' => $totalAmount,
+            ];
+        });
     }
 
     public function getCategoryById(string $id)

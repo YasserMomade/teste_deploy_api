@@ -27,13 +27,14 @@ class ClientControler extends Controller
         $this->costumerService = $costumerService;
         $this->orderService = $orderService;
     }
-
-    public function index() : JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $clients = $this->clientService->getAllClients();
-            return $this->success($clients);
-
+            $result = $this->clientService->getAllClients($request);
+            return $this->success([
+                'clients' => $result['clients'],
+                'statisc' => $result['statisc'],
+            ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -75,10 +76,17 @@ class ClientControler extends Controller
             }
 
             DB::transaction(function () use ($data, $client, &$responseData) {
-                $clientData = [
+               $clientData = [
                     "phone" => $data["phone"] ?? null,
                     "email" => $data["email"] ?? null,
                 ];
+
+                if (!empty($data["name"]) && !empty($data["lastname"])) {
+                    $clientData = array_merge($clientData, [
+                        "name"     => $data["name"],
+                        "lastname" => $data["lastname"],
+                    ]);
+                }
 
                 $clientupt = $this->clientService
                     ->updateClient($client, $clientData);
