@@ -18,7 +18,7 @@ use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
 use App\Http\Controllers\api\v1\CostumerController;
 use App\Http\Controllers\api\v1\OrdersRequestController;
-use App\Http\Controllers\api\v1\FileController;
+use App\Http\Controllers\Api\V1\FileController;
 
 
 
@@ -27,6 +27,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/setup/admin', [AuthController::class, 'setupAdmin'])
         ->middleware('throttle:5,1')
         ->name('setup.admin');
+
+    Route::apiResource('/files', FileController::class);
 
     Route::post('/auth/login', [AuthController::class, 'login'])
         ->middleware('throttle:10,1')
@@ -60,7 +62,7 @@ Route::prefix('v1')->group(function () {
         
         Route::apiResource('/orderRequest', OrdersRequestController::class);
         
-        Route::apiResource('/files', FileController::class);
+      
         
         Route::apiResource('countries', CountryController::class);
 

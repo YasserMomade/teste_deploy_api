@@ -26,7 +26,7 @@ class StoreFile extends FormRequest
             'document_type' => 'required|string',
             'order_id' => 'required|exists:orders,id',
             'responsible_id' => 'required|exists:users,id',
-            'file' => 'file|mimes:jpg,png,pdf,word|max:5120',
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp,pdf,svg|max:10240',
         ];
     }
 }
