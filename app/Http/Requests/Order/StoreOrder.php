@@ -23,14 +23,9 @@ class StoreOrder extends FormRequest
     public function rules(): array
     {
         return [
-           'client_id' => 'nullable|exists:clients,id',
+            'client_id' => 'nullable|exists:clients,id',
             'description' => 'required|string',
-            'tracking' => 'required|string|unique:orders,tracking',
-            'origin' => 'required|string',
-            'destination' => 'required|string',
             'reception_date' => 'required|date',
-            'service_type' => 'required|string',
-            'volume_number' => 'required|integer',
             'weight' => 'required|numeric',
             'declared_weight' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',

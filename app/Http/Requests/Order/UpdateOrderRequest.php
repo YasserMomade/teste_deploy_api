@@ -4,6 +4,7 @@ namespace App\Http\Requests\Order;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateOrderRequest extends FormRequest
 {
@@ -23,21 +24,29 @@ class UpdateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-    
-           'client_id' => 'nullable|exists:clients,id',
+            'client_id' => 'nullable|exists:clients,id',
             'description' => 'sometimes|string',
             'tracking' => 'sometimes|string|unique:orders,tracking',
             'origin' => 'sometimes|string',
-            'destination' => 'sometimes|string',
-            'reception_date' => 'sometimes|date',
             'service_type' => 'sometimes|string',
-            'volume_number' => 'sometimes|integer',
             'weight' => 'sometimes|numeric',
+            'status' => [
+                'sometimes',
+                Rule::in([
+                    'recebido_lisboa',
+                    'em_processamento',
+                    'pronto_expedicao',
+                    'expedido',
+                    'em_transito',
+                    'recebido_mocambique',
+                    'pronto_levantamento',
+                    'entregue',
+                ]),
+            ],
             'declared_weight' => 'sometimes|numeric',
             'category_id' => 'sometimes|exists:categories,id',
             'responsible_id' => 'nullable|exists:users,id',
             'store_id' => 'nullable|exists:stores,id',
-    
         ];
     }
 }

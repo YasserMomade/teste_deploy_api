@@ -32,15 +32,16 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
-    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+        Route::get('/order-statiscs', [OrderController::class, 'statisc']);
 
-    Route::apiResource('/costumer', CostumerController::class);
-       
+        Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+
+        Route::apiResource('/costumer', CostumerController::class);
     
         Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
         Route::apiResource('/orders', OrderController::class);
 
-         Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
+        Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');

@@ -17,4 +17,9 @@ class Client extends Model
     {
         return trim($this->name . ' ' . $this->lastname);
     }
+     
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

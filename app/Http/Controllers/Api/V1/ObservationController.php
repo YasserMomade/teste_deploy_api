@@ -32,6 +32,7 @@ class ObservationController extends Controller
 
         return $this->created(new ObservationResource($observation), 'Observation created successfully.');
     }
+    
 
     public function show(int $orderId, Observation $observation): JsonResponse
     {

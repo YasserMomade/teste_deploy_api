@@ -32,8 +32,11 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $orders = $this->orderService->getAllOrders($request);
-            return $this->success($orders);
+            $result = $this->orderService->getAllOrders($request);
+            return $this->success([
+                'orders'  => $result['orders'],
+                'statisc' => $result['statisc'],
+            ]);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -70,16 +73,15 @@ class OrderController extends Controller
                 $clientId = $data['client_id'] ?? null;
             }
 
+            //Trackign
+           $tracking = 'TRK' . strtoupper(bin2hex(random_bytes(5)));
+
             // order
            $orderData = [
                 "client_id" => $clientId,
                 "description" => $data['description'],
-                "tracking" => $data['tracking'],
-                "origin" => $data['origin'],
-                "destination" => $data['destination'],
+                "tracking" => $tracking,
                 "reception_date" => $data['reception_date'],
-                "service_type" => $data['service_type'],
-                "volume_number" => $data['volume_number'],
                 "weight" => $data['weight'],
                 "declared_weight" => $data['declared_weight'],
                 "category_id" => $data['category_id'],
@@ -157,14 +159,60 @@ class OrderController extends Controller
         }
     }
 
+    public function statisc(): JsonResponse
+    {
+        try {
+            $order = $this->orderService->statisc();
+
+            return $this->success($order);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
     public function update(UpdateOrderRequest $request, int $id): JsonResponse
     {
         try {
-            $order = $this->orderService->getOrderById($id);
-            if (!$order) {
-                return $this->notFound();
-            }
-            $updatedOrder = $this->orderService->updateOrder($order, $request->validated());
+            $data = $request->validated();
+
+           $orderData = [
+                "client_id" => $data['client_id'],
+                "description" => $data['description'],
+                "weight" => $data['weight'],
+                "declared_weight" => $data['declared_weight'],
+                "category_id" => $data['category_id'],
+                "store_id" => $data['store_id'],
+                "responsible_id" => $data['responsible_id'],
+            ];
+
+            $order = $this->orderService->updateOrder($id, $orderData);
+
+            //Invoice
+            $weight = $order->weight;
+            $price = $order->category->prices->first()?->amount ?? 0;
+            $amountToPay = $weight * $price;
+
+            $invoiceData = [
+                "amountTo_pay" => $amountToPay
+            ];
+            $invoice_id = $order->invoice_id;
+            $invoice = $this->invoiceService->updateInvoice($invoice_id, $invoiceData);
+
+            //status
+            $responsible_id = $data['responsible_id']; //responsavel pela atualização
+            $statusData = [
+                "descryption" => $data['status'],
+                "responsible_id" => $responsible_id,
+                "order_id" => $id
+            ];
+            $status = $this->statusService->createStatus($statusData);
+
+
+            return $this->created([
+                'order' => $order,
+                'invoice' => $invoice,
+                // 'status' => $status
+            ]);
             return $this->success($updatedOrder);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
