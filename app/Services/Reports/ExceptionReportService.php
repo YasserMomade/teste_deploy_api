@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 class ExceptionReportService
 {
-    // Weight per level for quality scoring
+
     private const LEVEL_WEIGHTS = [
         'good' => 4,
         'medium' => 3,
@@ -18,7 +18,7 @@ class ExceptionReportService
         'critical' => 1,
     ];
 
-    // === Entry point ========
+
 
     public function generate(array $filters = []): array
     {
@@ -52,18 +52,16 @@ class ExceptionReportService
         ];
     }
 
-    // == Existing exception sections =============
-
     private function buildBaseQuery(array $filters)
     {
         return Order::query()
             ->when(
                 isset($filters['date_from']),
-                fn($q) => $q->whereDate('reception_date', '>=', $filters['date_from'])
+                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
             )
             ->when(
                 isset($filters['date_to']),
-                fn($q) => $q->whereDate('reception_date', '<=', $filters['date_to'])
+                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
             );
     }
 
@@ -79,10 +77,7 @@ class ExceptionReportService
             ->get([
                 'id',
                 'tracking',
-                'origin',
-                'destination',
                 'reception_date',
-                'service_type',
                 'weight',
                 'responsible_id',
                 'category_id',
@@ -101,8 +96,6 @@ class ExceptionReportService
             ->get([
                 'id',
                 'tracking',
-                'origin',
-                'destination',
                 'reception_date',
                 'weight',
                 'client_id',
@@ -121,8 +114,6 @@ class ExceptionReportService
             ->get([
                 'id',
                 'tracking',
-                'origin',
-                'destination',
                 'reception_date',
                 'weight',
                 'client_id',
@@ -141,8 +132,6 @@ class ExceptionReportService
             ->get([
                 'id',
                 'tracking',
-                'origin',
-                'destination',
                 'reception_date',
                 'weight',
                 'client_id',
@@ -163,7 +152,6 @@ class ExceptionReportService
                 'orders.id',
                 'orders.tracking',
                 'orders.reception_date',
-                'orders.destination',
                 'orders.client_id',
                 'orders.invoice_id'
             )
@@ -190,11 +178,11 @@ class ExceptionReportService
             )
             ->when(
                 isset($filters['date_from']),
-                fn($q) => $q->whereDate('reception_date', '>=', $filters['date_from'])
+                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
             )
             ->when(
                 isset($filters['date_to']),
-                fn($q) => $q->whereDate('reception_date', '<=', $filters['date_to'])
+                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
             )
             ->get();
 
@@ -293,28 +281,7 @@ class ExceptionReportService
 
     private function findTransitConfig(Order $order): ?TransitTime
     {
-        $serviceType = str_contains(
-            strtolower($order->service_type),
-            'expresso'
-        )
-            ? 'expresso'
-            : 'normal';
-
-        return TransitTime::query()
-            ->whereHas(
-                'originCountry',
-                fn($q) =>
-                $q->where('name', 'like', "%{$order->origin}%")
-                    ->orWhere('coin', $order->origin)
-            )
-            ->whereHas(
-                'destinationCountry',
-                fn($q) =>
-                $q->where('name', 'like', "%{$order->destination}%")
-                    ->orWhere('coin', $order->destination)
-            )
-            ->where('service_type', $serviceType)
-            ->first();
+        return null;
     }
 
     private function getNextDeparture(Carbon $from, array $days): Carbon
@@ -336,22 +303,13 @@ class ExceptionReportService
     private function buildDelayRow(Order $order, ?array $analysis): array
     {
         return [
-            'id' => $order->id,
-            'tracking' => $order->tracking,
-
-            'client' => $order->client?->full_name ?? '-',
-
-            'origin' => $order->origin,
-            'destination' => $order->destination,
-            'service_type' => $order->service_type,
-
-            'store' => $order->store?->name ?? '-',
-
-            'responsible' => $order->responsible?->full_name ?? '-',
-
-            'reception_date' => $order->reception_date?->format('d/m/Y'),
-
-            'analysis' => $analysis,
+            'id'             => $order->id,
+            'tracking'       => $order->tracking,
+            'client'         => $order->client?->full_name ?? '-',
+            'store'          => $order->store?->name ?? '-',
+            'responsible'    => $order->responsible?->full_name ?? '-',
+            'created_at'     => $order->created_at?->format('d/m/Y'),
+            'analysis'       => $analysis,
         ];
     }
 
@@ -363,7 +321,7 @@ class ExceptionReportService
             ->with([
                 'creator:id,name,lastname,user_code',
 
-                'order:id,tracking,destination,service_type,client_id',
+                'order:id,tracking,client_id',
 
                 'order.client:id,name,lastname',
             ])
@@ -537,10 +495,6 @@ class ExceptionReportService
                 'tracking' => $order->tracking,
 
                 'client' => $order->client?->full_name ?? '-',
-
-                'destination' => $order->destination,
-
-                'service_type' => $order->service_type,
 
                 'responsible' => $order->responsible?->full_name ?? '-',
 
