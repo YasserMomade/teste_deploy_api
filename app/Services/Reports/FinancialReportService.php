@@ -35,15 +35,11 @@ class FinancialReportService
             ->join('invoices', 'orders.invoice_id', '=', 'invoices.id')
             ->when(
                 isset($filters['date_from']),
-                fn($q) => $q->whereDate('orders.reception_date', '>=', $filters['date_from'])
+                fn($q) => $q->whereDate('orders.created_at', '>=', $filters['date_from'])
             )
             ->when(
                 isset($filters['date_to']),
-                fn($q) => $q->whereDate('orders.reception_date', '<=', $filters['date_to'])
-            )
-            ->when(
-                isset($filters['destination']),
-                fn($q) => $q->where('orders.destination', 'like', "%{$filters['destination']}%")
+                fn($q) => $q->whereDate('orders.created_at', '<=', $filters['date_to'])
             )
             ->when(
                 isset($filters['payment_status']),
@@ -63,24 +59,11 @@ class FinancialReportService
     $data = (clone $query)
         ->selectRaw('
             COUNT(*) as total_orders,
-
             SUM(invoices.amountTo_pay) as total_to_pay,
-
             SUM(invoices.amount_paid) as total_paid,
-
-            SUM(orders.service_type = "drop off") as total_express,
-
-            SUM(orders.service_type = "normal") as total_normal,
-
-            SUM(
-                invoices.amountTo_pay - 
-                COALESCE(invoices.amount_paid, 0)
-            ) as total_debt,
-
+            SUM(invoices.amountTo_pay - COALESCE(invoices.amount_paid, 0)) as total_debt,
             SUM(invoices.payment_status = "paid") as total_paid_orders,
-
             SUM(invoices.payment_status = "pendent") as total_pendent_orders,
-
             SUM(invoices.payment_status = "faild") as total_failed_orders
         ')
         ->first();
@@ -93,8 +76,6 @@ class FinancialReportService
         "total_paid_orders"    => (int) $data->total_paid_orders,
         "total_pendent_orders" => (int) $data->total_pendent_orders,
         "total_failed_orders"  => (int) $data->total_failed_orders,
-        "total_express"        => (int) $data->total_express,
-        "total_normal"         => (int) $data->total_normal,
     ];
 }
 
@@ -140,13 +121,13 @@ class FinancialReportService
     {
         return (clone $query)
             ->selectRaw('
-                DATE(orders.reception_date) as date,
+                DATE(orders.created_at) as date,
                 COUNT(*) as total_orders,
                 SUM(invoices.amountTo_pay) as total_to_pay,
                 SUM(invoices.amount_paid) as total_paid,
                 SUM(orders.weight) as total_weight
             ')
-            ->groupBy(DB::raw('DATE(orders.reception_date)'))
+            ->groupBy(DB::raw('DATE(orders.created_at)'))
             ->orderBy('date')
             ->get()
             ->map(fn($row) => [
@@ -159,7 +140,3 @@ class FinancialReportService
             ->toArray();
     }
 }
-
-
-
-
