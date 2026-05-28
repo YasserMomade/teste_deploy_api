@@ -22,14 +22,12 @@ class OperationalReportService
             ->get();
 
         return [
-            'summary' => $this->buildSummary($query),
-            'by_destination' => $this->groupByDestination(clone $query),
-            'by_status' => $this->groupByStatus(clone $query),
-            'by_service_type' => $this->groupByServiceType(clone $query),
-            'by_category' => $this->groupByCategory(clone $query),
-            'by_store' => $this->groupByStore(clone $query),
-            'orders' => $orders,
-            'filters_applied' => $filters,
+            'summary'          => $this->buildSummary($query),
+            'by_status'        => $this->groupByStatus(clone $query),
+            'by_category'      => $this->groupByCategory(clone $query),
+            'by_store'         => $this->groupByStore(clone $query),
+            'orders'           => $orders,
+            'filters_applied'  => $filters,
         ];
     }
 
@@ -43,14 +41,6 @@ class OperationalReportService
             ->when(
                 isset($filters['date_to']),
                 fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
-            )
-            ->when(
-                isset($filters['destination']),
-                fn($q) => $q->where('destination', 'like', "%{$filters['destination']}%")
-            )
-            ->when(
-                isset($filters['origin']),
-                fn($q) => $q->where('origin', 'like', "%{$filters['origin']}%")
             )
             ->when(
                 isset($filters['store_id']),
@@ -67,32 +57,16 @@ class OperationalReportService
         $data = (clone $query)->selectRaw('
             COUNT(*) as total_orders,
             SUM(weight) as total_weight,
-            SUM(declared_weight) as total_declared_weight,
-            SUM(volume_number) as total_volumes
+            SUM(declared_weight) as total_declared_weight
         ')->first();
 
         return [
-            'total_orders' => (int) $data->total_orders,
-            'total_weight' => round((float) $data->total_weight, 3),
+            'total_orders'          => (int) $data->total_orders,
+            'total_weight'          => round((float) $data->total_weight, 3),
             'total_declared_weight' => round((float) $data->total_declared_weight, 3),
-            'total_volumes' => (int) $data->total_volumes,
         ];
     }
 
-    private function groupByDestination($query): array
-    {
-        return (clone $query)
-            ->selectRaw('destination, COUNT(*) as total, SUM(weight) as total_weight')
-            ->groupBy('destination')
-            ->orderByDesc('total')
-            ->get()
-            ->map(fn($row) => [
-                'destination'  => $row->destination,
-                'total_orders' => (int) $row->total,
-                'total_weight' => round((float) $row->total_weight, 3),
-            ])
-            ->toArray();
-    }
 
     private function groupByStatus($query): array
     {
@@ -119,19 +93,6 @@ class OperationalReportService
             ->toArray();
     }
 
-    private function groupByServiceType($query): array
-    {
-        return (clone $query)
-            ->selectRaw('service_type, COUNT(*) as total')
-            ->groupBy('service_type')
-            ->orderByDesc('total')
-            ->get()
-            ->map(fn($row) => [
-                'service_type' => $row->service_type,
-                'total'        => (int) $row->total,
-            ])
-            ->toArray();
-    }
 
     private function groupByCategory($query): array
     {
