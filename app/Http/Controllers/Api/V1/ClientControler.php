@@ -76,7 +76,7 @@ class ClientControler extends Controller
             }
 
             DB::transaction(function () use ($data, $client, &$responseData) {
-               $clientData = [
+                $clientData = [
                     "phone" => $data["phone"] ?? null,
                     "email" => $data["email"] ?? null,
                 ];
@@ -88,15 +88,25 @@ class ClientControler extends Controller
                     ]);
                 }
 
-                $clientupt = $this->clientService
-                    ->updateClient($client, $clientData);
-
+                $clientupt = $this->clientService->updateClient($client, $clientData);
                 $responseData['client'] = $clientupt;
 
-                if (
-                    !empty($data['id_costumer']) &&
-                    !empty($data['id_selectedOrder'])
-                ) {
+                if (!empty($data['id_costumer']) && !empty($data['id_selectedOrder'])) {
+                    if (!empty($data['file_order_map'])) {
+                        foreach ($data['file_order_map'] as $fileCostumerId => $orderId) {
+                            $fileCostumer = \App\Models\FileCostumer::find($fileCostumerId);
+                            if (!$fileCostumer) continue;
+
+                            \App\Models\File::create([
+                                'document_type' => $fileCostumer->document_type,
+                                'url'           => $fileCostumer->url,
+                                'order_id'      => $orderId,
+                                'responsible_id' => auth()->id(), 
+                            ]);
+
+                            $fileCostumer->delete();
+                        }
+                    }
 
                     $costumerdelete = $this->costumerService
                         ->deleteCostumer($data['id_costumer']);
@@ -107,9 +117,9 @@ class ClientControler extends Controller
                     );
 
                     $responseData['costumer_deleted'] = $costumerdelete;
-                    $responseData['orders_updated'] = $orderupt;
+                    $responseData['orders_updated']   = $orderupt;
                 }
-            });
+});
 
             return $this->success(
                 $responseData ?? null,
