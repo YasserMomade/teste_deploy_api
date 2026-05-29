@@ -23,15 +23,16 @@ class StoreCostumer extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name'     => 'required|string|max:255',
             'lastname' => 'required|string|min:2|max:255',
-            'phone' => 'required|string|max:20',
-            'email' => 'required|email',
+            'phone'    => 'required|string|max:20',
+            'email'    => 'required|email',
 
-            'orders_request' => 'required|array|min:1',
-                'orders_request.*.description' => 'required|string',
-                'orders_request.*.quantity' => 'required|integer|min:1',
-                'orders_request.*.store_name' => 'required|string',
+            'orders_request'                  => 'required|array|min:1',
+            'orders_request.*.description'   => 'required|string',
+            'orders_request.*.store_name'    => 'required|string',
+            'orders_request.*.category'      => 'required|string',
+            'orders_request.*.sub_category'  => 'nullable|string',
         ];
     }
 }

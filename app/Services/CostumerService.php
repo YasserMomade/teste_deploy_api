@@ -13,7 +13,10 @@ class CostumerService
 
     public function getAllCostumers($request = null, int $perPage = 15)
     {
-        $query = Costumer::with('orderRequest')->latest();
+        $query = Costumer::with([
+            'orderRequest',
+            'fileCostumer'
+        ])->latest();
 
         if ($request) {
 
@@ -39,7 +42,10 @@ class CostumerService
 
     public function getCostumerById(int $id): ?Costumer
     {
-        return Costumer::with('orderRequest')
+        return Costumer::with([
+            'orderRequest',
+            'fileCostumer'
+        ])
             ->findOrFail($id);
     }
 
