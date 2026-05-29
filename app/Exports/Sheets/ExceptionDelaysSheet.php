@@ -70,7 +70,7 @@ class ExceptionDelaysSheet implements FromArray, WithTitle, WithColumnWidths, Wi
             $rowNum++;
         } else {
             $this->tableHeaderRows[] = $rowNum;
-            $rows[] = ['Tracking', 'Cliente', 'Origem', 'Destino', 'Serviço', 'Saída Prevista', 'Prazo Limite', 'Horas Atraso', 'Entregue', 'Entregue Por'];
+            $rows[] = ['Tracking', 'Cliente', 'Loja', 'Responsável', 'Saída Prevista', 'Prazo Limite', 'Horas Atraso', 'Entregue', 'Entregue Por', ''];
             $rowNum++;
 
             foreach ($this->delays['delayed'] as $row) {
@@ -78,14 +78,14 @@ class ExceptionDelaysSheet implements FromArray, WithTitle, WithColumnWidths, Wi
                 $rows[] = [
                     $row['tracking'],
                     $row['client'],
-                    $row['origin'],
-                    $row['destination'],
-                    $row['service_type'],
+                    $row['store'] ?? '-',
+                    $row['responsible'],
                     $row['analysis']['actual_departure_at'] ? Carbon::parse($row['analysis']['actual_departure_at'])->format('d/m/Y H:i') : '-',
                     $row['analysis']['deadline_at']         ? Carbon::parse($row['analysis']['deadline_at'])->format('d/m/Y H:i')         : '-',
                     '+' . $row['analysis']['delay_hours'] . 'h',
                     $row['analysis']['is_delivered'] ? 'Sim' : 'Não',
                     $row['analysis']['delivered_by'] ?? '-',
+                    '',
                 ];
                 $rowNum++;
             }
@@ -104,7 +104,7 @@ class ExceptionDelaysSheet implements FromArray, WithTitle, WithColumnWidths, Wi
             $rowNum++;
         } else {
             $this->tableHeaderRows[] = $rowNum;
-            $rows[] = ['Tracking', 'Cliente', 'Origem', 'Destino', 'Serviço', 'Saída Prevista', 'Prazo Limite', 'Horas Decorridas', 'Entregue', 'Entregue Por'];
+            $rows[] = ['Tracking', 'Cliente', 'Loja', 'Responsável', 'Saída Prevista', 'Prazo Limite', 'Horas Decorridas', 'Entregue', 'Entregue Por', ''];
             $rowNum++;
 
             foreach ($this->delays['on_time'] as $row) {
@@ -112,14 +112,14 @@ class ExceptionDelaysSheet implements FromArray, WithTitle, WithColumnWidths, Wi
                 $rows[] = [
                     $row['tracking'],
                     $row['client'],
-                    $row['origin'],
-                    $row['destination'],
-                    $row['service_type'],
+                    $row['store'] ?? '-',
+                    $row['responsible'],
                     $row['analysis']['actual_departure_at'] ? Carbon::parse($row['analysis']['actual_departure_at'])->format('d/m/Y H:i') : '-',
                     $row['analysis']['deadline_at']         ? Carbon::parse($row['analysis']['deadline_at'])->format('d/m/Y H:i')         : '-',
                     $row['analysis']['elapsed_hours'] . 'h',
                     $row['analysis']['is_delivered'] ? 'Sim' : 'Não',
                     $row['analysis']['delivered_by'] ?? '-',
+                    '',
                 ];
                 $rowNum++;
             }

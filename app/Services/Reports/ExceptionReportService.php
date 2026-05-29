@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 class ExceptionReportService
 {
-
+    // Weight per level for quality scoring
     private const LEVEL_WEIGHTS = [
         'good' => 4,
         'medium' => 3,
@@ -18,39 +18,27 @@ class ExceptionReportService
         'critical' => 1,
     ];
 
-
+    // === Entry point ========
 
     public function generate(array $filters = []): array
     {
-        $ordersWithoutClient = $this->getOrdersWithoutClient($filters);
-        $ordersWithoutInvoice = $this->getOrdersWithoutInvoice($filters);
-        $ordersWithoutDeclaredWeight = $this->getOrdersWithoutDeclaredWeight($filters);
-        $ordersWithoutStatus = $this->getOrdersWithoutStatus($filters);
-        $invoicesWithNullStatus = $this->getInvoicesWithNullStatus($filters);
         $delays = $this->getDelays($filters);
         $quality = $this->getQuality($filters);
 
         return [
-            'orders_without_client' => $ordersWithoutClient,
-            'orders_without_invoice' => $ordersWithoutInvoice,
-            'orders_without_declared_weight' => $ordersWithoutDeclaredWeight,
-            'orders_without_status' => $ordersWithoutStatus,
-            'invoices_with_null_status' => $invoicesWithNullStatus,
-            'delays' => $delays,
+            'delays'  => $delays,
             'quality' => $quality,
             'summary' => [
-                'total_without_client' => $ordersWithoutClient->count(),
-                'total_without_invoice' => $ordersWithoutInvoice->count(),
-                'total_without_declared_weight' => $ordersWithoutDeclaredWeight->count(),
-                'total_without_status' => $ordersWithoutStatus->count(),
-                'total_invoices_null_status' => $invoicesWithNullStatus->count(),
-                'total_delayed' => $delays['summary']['total_delayed'],
-                'quality_score' => $quality['score']['score'],
-                'quality_label' => $quality['score']['label'],
+                'total_delayed'   => $delays['summary']['total_delayed'],
+                'quality_score'   => $quality['score']['score'],
+                'quality_label'   => $quality['score']['label'],
+                'total_critical'  => $quality['summary']['total_critical'],
             ],
             'filters_applied' => $filters,
         ];
     }
+
+    // == Existing exception sections =============
 
     private function buildBaseQuery(array $filters)
     {
@@ -165,11 +153,11 @@ class ExceptionReportService
         $orders = Order::query()
             ->with([
                 'client:id,name,lastname',
-                'responsible:id,name,lastname,user_code',
+                'responsible:id,name,lastname,user_code,counter_id',
+                'responsible.counter:id,country_id',
+                'responsible.counter.country:id,name',
                 'store:id,name',
-
                 'statuses:id,order_id,descryption,responsible_id,created_at',
-
                 'statuses.responsible:id,name,lastname,user_code',
             ])
             ->whereHas(
@@ -281,7 +269,18 @@ class ExceptionReportService
 
     private function findTransitConfig(Order $order): ?TransitTime
     {
-        return null;
+        // Origem: país do balcão do responsável pela encomenda
+        $originCountryId = $order->responsible?->counter?->country_id;
+
+        if (!$originCountryId) {
+            return null;
+        }
+
+        // Tenta encontrar configuração de trânsito a partir do país de origem
+        // Service type foi removido — usa 'normal' como fallback
+        return TransitTime::query()
+            ->where('origin_country_id', $originCountryId)
+            ->first();
     }
 
     private function getNextDeparture(Carbon $from, array $days): Carbon

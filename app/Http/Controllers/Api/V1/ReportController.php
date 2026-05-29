@@ -53,13 +53,11 @@ class ReportController extends Controller
     private function validateBaseFilters(Request $request): array
     {
         return $request->validate([
-            'date_from' => ['sometimes', 'date'],
-            'date_to' => ['sometimes', 'date', 'after_or_equal:date_from'],
-            'destination' => ['sometimes', 'string'],
-            'origin' => ['sometimes', 'string'],
-            'store_id' => ['sometimes', 'integer', 'exists:stores,id'],
+            'date_from'   => ['sometimes', 'date'],
+            'date_to'     => ['sometimes', 'date', 'after_or_equal:date_from'],
+            'store_id'    => ['sometimes', 'integer', 'exists:stores,id'],
             'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
-            'format' => ['sometimes', 'string', 'in:excel,pdf'],
+            'format'      => ['sometimes', 'string', 'in:excel,pdf'],
         ]);
     }
 
@@ -151,10 +149,6 @@ public function exportException(Request $request): mixed
     {
         $pdf = Pdf::loadView('reports.exception', array_merge($data, [
             'filters' => $filters,
-            'orders_without_client' => $data['orders_without_client'],
-            'orders_without_invoice' => $data['orders_without_invoice'],
-            'orders_without_declared_weight' => $data['orders_without_declared_weight'],
-            'orders_without_status' => $data['orders_without_status'],
         ]))->setPaper('a4', 'portrait');
 
         return $pdf->download('relatorio_excepcoes_' . now()->format('Ymd_His') . '.pdf');

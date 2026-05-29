@@ -140,10 +140,8 @@ class ExceptionQualitySheet implements FromArray, WithTitle, WithColumnWidths, W
                 $rows[] = [
                     $order['tracking'],
                     $order['client'],
-                    $order['destination'],
-                    $order['service_type'],
                     'Resp: ' . $order['responsible'],
-                    '', '', '', '',
+                    '', '', '', '', '', '',
                 ];
                 $rowNum++;
 

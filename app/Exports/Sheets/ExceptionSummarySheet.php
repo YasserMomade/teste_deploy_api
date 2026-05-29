@@ -41,9 +41,8 @@ class ExceptionSummarySheet implements FromArray, WithTitle, WithStyles, WithCol
             ['Indicador', 'Total'],
 
             
-            ['Encomendas sem Cliente', $this->summary['total_without_client']],
-            ['Encomendas sem Estado', $this->summary['total_without_status']],
-            ['Encomendas em Atraso', $this->summary['total_delayed']],
+            ['Encomendas em Atraso',    $this->summary['total_delayed']],
+            ['Observações Críticas',    $this->summary['total_critical']],
 
             // Row 12 - blank
             ['', '', ''],

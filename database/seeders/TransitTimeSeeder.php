@@ -32,7 +32,7 @@ class TransitTimeSeeder extends Seeder
             'service_type' => 'expresso',
         ], [
             'expected_hours' => 48,
-            'departure_days' => [3, 5] // seg = 1, sex = 5,
+            'departure_days' => [1, 5] // seg = 1, sex = 5,
         ]);
 
         TransitTime::firstOrCreate([
@@ -41,7 +41,7 @@ class TransitTimeSeeder extends Seeder
             'service_type' => 'normal',
         ], [
             'expected_hours' => 96,
-            'departure_days' => [3, 5],
+            'departure_days' => [1, 5],
         ]);
     }
 }

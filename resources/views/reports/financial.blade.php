@@ -55,11 +55,6 @@
         <span class="s-label">Pendentes</span>
         <span class="s-value">{{ $summary['total_pendent_orders'] }}</span>
     </div>
-   <div class="summary-box">
-        <span class="s-label">Tipo de entrega</span>
-        <span class="s-value red" style="font-size: 10px;">{{'Drop off: ' . $summary['total_express'] }}</span>
-        <span class="s-value green" style="font-size: 10px;">{{'Normal: ' . $summary['total_normal'] }}</span>
-    </div>
 </div>
 
 {{-- BY PAYMENT STATUS & METHOD --}}
@@ -141,7 +136,7 @@
             <td>{{ \Carbon\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
             <td>{{ $row['total_orders'] }}</td>
             <td>{{ number_format($row['total_to_pay'], 2) . ' €' }}</td>
-            <td>{{ ($order->invoice?->amount_paid ?? 0) > 0 ? number_format($order->invoice?->amount_paid, 2) . ' €' : '-'}}</td>
+            <td>{{ ($row['total_paid'] ?? 0) > 0 ? number_format($row['total_paid'], 2) . ' €' : '-'}}</td>
             <td>{{ number_format($row['total_weight'], 3) }}</td>
         </tr>
         @endforeach
@@ -157,7 +152,6 @@
             <th>Tracking</th>
             <th>Cliente</th>
             <th>Data</th>
-            <th>Destino</th>
             <th>A Pagar</th>
             <th>Pago</th>
             <th>Saldo</th>
@@ -172,10 +166,9 @@
         <tr>
             <td>{{ $order->tracking }}</td>
             <td> {{ ($order['client']['name'] ?? '') . ' ' . ($order['client']['lastname'] ?? '') }}</td>
-            <td>{{ \Carbon\Carbon::parse($order['reception_date'])->format('d/m/Y') }}</td>
-            <td>{{ $order->destination }}</td>
+            <td>{{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') }}</td>
             <td>{{ number_format($order->invoice?->amountTo_pay ?? 0, 2) . ' €'}}</td>
-            <td>{{ ($order->invoice?->amount_paid ?? 0) > 0 ? number_format($order->invoice?->amount_paid, 2) . ' €' : '-'}}</td>
+            <td>{{ ($row['total_paid'] ?? 0) > 0 ? number_format($row['total_paid'], 2) . ' €' : '-'}}</td>
             <td>{{ number_format(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice?->amount_paid ?? 0), 2) . ' €' }}</td>
             <td>
                 @php $st = $order->invoice?->payment_status ?? 'pendent' @endphp
@@ -192,7 +185,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="11" class="empty-state">Nenhuma encomenda encontrada para os filtros seleccionados.</td>
+            <td colspan="10" class="empty-state">Nenhuma encomenda encontrada para os filtros seleccionados.</td>
         </tr>
         @endforelse
     </tbody>
