@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\api\v1\StoreController;
 use App\Http\Controllers\api\v1\StatusController;
 use App\Http\Controllers\api\v1\CostumerController;
+use App\Http\Controllers\api\v1\CostumerFileController;
 use App\Http\Controllers\api\v1\OrdersRequestController;
 use App\Http\Controllers\Api\V1\FileController;
 
@@ -38,7 +39,12 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
-    Route::apiResource('/costumer', CostumerController::class);
+        Route::apiResource('/costumer', CostumerController::class);
+        Route::post('/customer-request',       [CostumerController::class, 'store']);
+        Route::post('/customer-file',          [CostumerFileController::class, 'store']);
+    
+        Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
+        Route::apiResource('/orders', OrderController::class);
 
     Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
     Route::apiResource('/orders', OrderController::class);

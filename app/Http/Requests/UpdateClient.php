@@ -30,6 +30,8 @@ class UpdateClient extends FormRequest
             'id_costumer' => ['sometimes', 'integer'],
             'id_selectedOrder' => ['sometimes', 'array'],
             'id_selectedOrder.*' => ['integer'],
+            'file_order_map'   => ['nullable', 'array'],
+            'file_order_map.*' => ['integer', 'exists:orders,id'],
         ];
     }
 }

@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\CostumerService;
 use App\Services\OrderRequestService;
+use App\Services\FileCostumerService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Costumer\StoreCostumer;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 
 class CostumerController extends Controller
@@ -34,34 +36,41 @@ class CostumerController extends Controller
     }
 
     public function store(StoreCostumer $request): JsonResponse
-    {
-        try {
-            $data = $request->validated();
+{
+    try {
+        $data = $request->validated();
 
+        $costumer = DB::transaction(function () use ($data) {
 
+            // 1. Criar cliente
             $costumer = $this->costumerService->createCostumer([
-                "name" => $data['name'],
-                "lastname" => $data['lastname'],
-                "phone" => $data['phone'],
-                "email" => $data['email'],
+                'name'     => $data['name'],
+                'lastname' => $data['lastname'],
+                'phone'    => $data['phone'],
+                'email'    => $data['email'],
             ]);
 
-
             foreach ($data['orders_request'] as $order_request) {
-
                 $this->orderRequestService->createOrder([
-                    "description" => $order_request['description'],
-                    "quantity" => $order_request['quantity'],
-                    "store_name" => $order_request['store_name'],
-                    "costumer_id" => $costumer->id,
+                    'description'  => $order_request['description'],
+                    'store_name'   => $order_request['store_name'],
+                    'category'     => $order_request['category'],
+                    'sub_category' => $order_request['sub_category'] ?? null,
+                    'costumer_id'  => $costumer->id,
                 ]);
             }
 
-            return $this->created($costumer->load('orderRequest'));
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
+            return $costumer;
+        });
+
+        return $this->created(
+            $costumer->load('orderRequest')
+        );
+
+    } catch (\Exception $e) {
+        return $this->error($e->getMessage());
     }
+}
 
     public function show(int $id): JsonResponse
     {
