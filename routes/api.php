@@ -43,6 +43,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
         Route::apiResource('/orders', OrderController::class);
 
+         Route::post('/webhook/stripe', [InvoiceController::class, 'handleWebhook'])->name('stripe.webhook');
+
         Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
 
@@ -62,11 +64,11 @@ Route::prefix('v1')->group(function () {
         
         Route::apiResource('/orderRequest', OrdersRequestController::class);
         
-      
-        
         Route::apiResource('countries', CountryController::class);
 
         Route::apiResource('stores', StoreController::class);
+
+         Route::post('/invoice/{id}/payment-link', [InvoiceController::class, 'generatePaymentLink'])->name('invoice.payment-link');
 
 
 

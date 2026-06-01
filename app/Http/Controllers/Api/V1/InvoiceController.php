@@ -20,8 +20,8 @@ class InvoiceController extends Controller
     public function __construct(InvoiceService $invoiceService)
     {
         $this->invoiceService = $invoiceService;
-    }  
-    
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -30,7 +30,6 @@ class InvoiceController extends Controller
         try {
             $invoice = $this->invoiceService->getAllInvoice();
             return $this->success($invoice);
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -57,7 +56,6 @@ class InvoiceController extends Controller
         try {
             $invoice = $this->invoiceService->getInvoiceById($id);
             return $this->success($invoice);
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -72,7 +70,6 @@ class InvoiceController extends Controller
         try {
             $invoice = $this->invoiceService->updateInvoice($id, $request->validated());
             return $this->success($invoice);
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -86,10 +83,48 @@ class InvoiceController extends Controller
         try {
             $this->invoiceService->deleteInvoice($id);
             return $this->success(null, 'Invoice deleted successfully');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
 
+
+    public function generatePaymentLink(string $id): JsonResponse
+    {
+
+        try {
+            $existing = $this->invoiceService->getInvoiceById($id);
+
+            if ($existing->stripe_payment_link) {
+                return $this->success($existing, 'Link de pagamento já existente.');
+            }
+
+            $invoice = $this->invoiceService->generatePaymentLink($id);
+
+            return $this->success($invoice, 'Link de pagamento gerado com sucesso.');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    public function handleWebhook(Request $request): JsonResponse
+    {
+
+        $payload = $request->getContent();
+        $sigHeader = $request->header('Stripe-Signature');
+
+        if (!$sigHeader) {
+            return $this->error('Assinatura Stripe em falta.', 400);
+        }
+
+        try {
+            $this->invoiceService->handleStripeWebhook($payload, $sigHeader);
+
+            return $this->success(null, 'Webhook processado com sucesso.');
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            return $this->error('Assinatura Stripe inválida.', 400);
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 }
-

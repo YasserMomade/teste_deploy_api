@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         'role' => \App\Http\Middleware\EnsureUserHasRole::class,
         'audit.context' => \App\Http\Middleware\SetAuditContext::class,
     ]);
+    
+    $middleware->preventRequestForgery(except: [
+        'api/v1/webhook/stripe',
+    ]);
 })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
