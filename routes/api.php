@@ -34,18 +34,19 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
-        Route::get('/order-statiscs', [OrderController::class, 'statisc']);
+    Route::get('/order-statiscs', [OrderController::class, 'statisc']);
 
-        Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
-        Route::apiResource('/costumer', CostumerController::class);
-    
-        Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
-        Route::apiResource('/orders', OrderController::class);
+    Route::apiResource('/costumer', CostumerController::class);
 
-         Route::post('/webhook/stripe', [InvoiceController::class, 'handleWebhook'])->name('stripe.webhook');
+    Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
+    Route::apiResource('/orders', OrderController::class);
 
-        Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
+    Route::post('/webhook/stripe', [InvoiceController::class, 'handleWebhook'])
+        ->name('stripe.webhook')
+        ->withoutMiddleware('throttle');
+    Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
@@ -61,14 +62,14 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/invoice', InvoiceController::class);
 
         Route::apiResource('/status', StatusController::class);
-        
+
         Route::apiResource('/orderRequest', OrdersRequestController::class);
-        
+
         Route::apiResource('countries', CountryController::class);
 
         Route::apiResource('stores', StoreController::class);
 
-         Route::post('/invoice/{id}/payment-link', [InvoiceController::class, 'generatePaymentLink'])->name('invoice.payment-link');
+        Route::post('/invoice/{id}/payment-link', [InvoiceController::class, 'generatePaymentLink'])->name('invoice.payment-link');
 
 
 
@@ -83,9 +84,9 @@ Route::prefix('v1')->group(function () {
         // == So admin ==
         Route::middleware('role:admin,Manager')->group(function () {
 
-           
+
             Route::apiResource('counters',  CounterController::class);
-           
+
 
             Route::apiResource('users', UserController::class);
             Route::patch('users/{user}/reset-password', [UserController::class, 'resetPassword'])
@@ -105,7 +106,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
             Route::get('/operational/export', [ReportController::class, 'exportOperational'])->name('reports.operational.export');
             Route::get('/exception/export', [ReportController::class, 'exportException'])->name('reports.exception.export');
-            });
-            });
-            });
-
+        });
+    });
+});

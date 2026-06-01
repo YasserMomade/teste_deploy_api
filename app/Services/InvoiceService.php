@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Invoice;
-use Stripe\Price;     
+use Stripe\Price;
 use Stripe\PaymentLink;
 use Stripe\Stripe;
 use Stripe\Webhook;
@@ -14,40 +14,31 @@ class InvoiceService
     {
         return Invoice::create($data);
     }
-
     public function getAllInvoice()
     {
         return Invoice::with('orders')->get();
     }
-
     public function getInvoiceById(string $id)
     {
         return Invoice::findOrFail($id);
     }
-
     public function updateInvoice(string $id, array $data)
     {
         $invoice = Invoice::findOrFail($id);
         $invoice->update($data);
-
         return $invoice;
     }
-
     public function deleteInvoice(string $id)
     {
         $invoice = Invoice::findOrFail($id);
         return $invoice->delete();
     }
-
     public function generatePaymentLink(string $invoiceId): Invoice
     {
         $invoice = Invoice::findOrFail($invoiceId);
 
-        // autenticacao 
-
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        //Converter para centimos
         $amountInCents = (int) round($invoice->amountTo_pay * 100);
 
         $price = Price::create([
@@ -81,7 +72,21 @@ class InvoiceService
 
             case 'checkout.session.completed':
                 $session = $event->data->object;
-                $this->markInvoiceAsPaid($session);
+
+                Stripe::setApiKey(config('services.stripe.secret'));
+
+                try {
+
+                    $session = \Stripe\Checkout\Session::retrieve([
+                        'id'     => $session->id,
+                        'expand' => ['line_items'],
+                    ]);
+                    $this->markInvoiceAsPaid($session);
+                } catch (\Exception $e) {
+
+                    \Log::warning('Stripe: não foi possível expandir sessão, tentando pelo payment_link: ' . $e->getMessage());
+                    $this->markInvoiceAsPaidByPaymentLink($session->payment_link ?? null);
+                }
                 break;
 
             case 'payment_intent.payment_failed':
@@ -108,9 +113,35 @@ class InvoiceService
 
         $invoice->update([
             'payment_status' => 'paid',
-            'amount_paid' => $invoice->amountTo_pay,
+            'amount_paid'    => $invoice->amountTo_pay,
         ]);
 
         \Log::info('Stripe: fatura #' . $invoice->id . ' marcada como paga.');
+    }
+
+    private function markInvoiceAsPaidByPaymentLink(?string $paymentLinkId): void
+    {
+        if (!$paymentLinkId) {
+            \Log::error('Stripe webhook: payment_link_id em falta.');
+            return;
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $link = \Stripe\PaymentLink::retrieve($paymentLinkId);
+
+        $invoice = Invoice::where('stripe_payment_link', $link->url)->first();
+
+        if (!$invoice) {
+            \Log::error('Stripe webhook: fatura não encontrada para payment_link ' . $paymentLinkId);
+            return;
+        }
+
+        $invoice->update([
+            'payment_status' => 'paid',
+            'amount_paid'    => $invoice->amountTo_pay,
+        ]);
+
+        \Log::info('Stripe: fatura #' . $invoice->id . ' marcada como paga via payment_link.');
     }
 }

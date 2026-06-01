@@ -109,9 +109,14 @@ class InvoiceController extends Controller
 
     public function handleWebhook(Request $request): JsonResponse
     {
-
-        $payload = $request->getContent();
+        $payload   = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
+
+        \Log::info('Webhook debug', [
+            'sig_header' => $sigHeader,
+            'secret'     => config('services.stripe.webhook_secret'),
+            'payload_length' => strlen($payload),
+        ]);
 
         if (!$sigHeader) {
             return $this->error('Assinatura Stripe em falta.', 400);
@@ -119,11 +124,12 @@ class InvoiceController extends Controller
 
         try {
             $this->invoiceService->handleStripeWebhook($payload, $sigHeader);
-
             return $this->success(null, 'Webhook processado com sucesso.');
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            \Log::error('Stripe assinatura inválida: ' . $e->getMessage());
             return $this->error('Assinatura Stripe inválida.', 400);
         } catch (\Exception $e) {
+            \Log::error('Stripe webhook erro: ' . $e->getMessage());
             return $this->error($e->getMessage());
         }
     }
