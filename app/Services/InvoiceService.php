@@ -54,6 +54,8 @@ class InvoiceService
                 'price' => $price->id,
                 'quantity' => 1,
             ]],
+            
+            'payment_method_types' => ['card'],
         ]);
 
         $invoice->update([
@@ -76,14 +78,14 @@ class InvoiceService
                 Stripe::setApiKey(config('services.stripe.secret'));
 
                 try {
-
+                    // Tenta expandir os line_items para obter o price_id
                     $session = \Stripe\Checkout\Session::retrieve([
-                        'id'     => $session->id,
+                        'id' => $session->id,
                         'expand' => ['line_items'],
                     ]);
                     $this->markInvoiceAsPaid($session);
                 } catch (\Exception $e) {
-
+                    // Se falhar, tenta encontrar a fatura pelo URL do payment_link
                     \Log::warning('Stripe: não foi possível expandir sessão, tentando pelo payment_link: ' . $e->getMessage());
                     $this->markInvoiceAsPaidByPaymentLink($session->payment_link ?? null);
                 }
@@ -113,7 +115,8 @@ class InvoiceService
 
         $invoice->update([
             'payment_status' => 'paid',
-            'amount_paid'    => $invoice->amountTo_pay,
+            'amount_paid' => $invoice->amountTo_pay,
+            'payment_method' => 'card',
         ]);
 
         \Log::info('Stripe: fatura #' . $invoice->id . ' marcada como paga.');
@@ -130,6 +133,7 @@ class InvoiceService
 
         $link = \Stripe\PaymentLink::retrieve($paymentLinkId);
 
+
         $invoice = Invoice::where('stripe_payment_link', $link->url)->first();
 
         if (!$invoice) {
@@ -139,7 +143,8 @@ class InvoiceService
 
         $invoice->update([
             'payment_status' => 'paid',
-            'amount_paid'    => $invoice->amountTo_pay,
+            'amount_paid' => $invoice->amountTo_pay,
+            'payment_method' => 'card',
         ]);
 
         \Log::info('Stripe: fatura #' . $invoice->id . ' marcada como paga via payment_link.');
