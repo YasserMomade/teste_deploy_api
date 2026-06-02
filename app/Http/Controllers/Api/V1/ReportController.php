@@ -149,6 +149,7 @@ public function exportException(Request $request): mixed
     {
         $pdf = Pdf::loadView('reports.exception', array_merge($data, [
             'filters' => $filters,
+            'stalled' => $data['stalled'],
         ]))->setPaper('a4', 'portrait');
 
         return $pdf->download('relatorio_excepcoes_' . now()->format('Ymd_His') . '.pdf');
