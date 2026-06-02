@@ -18,12 +18,15 @@ class OperationalReportService
                 'store:id,name',
                 'latestStatus:status.id,status.order_id,status.descryption,status.created_at',
                 'responsible:id,name,lastname,user_code',
+                'statuses:id,order_id,descryption,responsible_id,created_at',
+                'statuses.responsible:id,name,lastname',
             ])
             ->get();
 
         return [
             'summary'          => $this->buildSummary($query),
             'by_status'        => $this->groupByStatus(clone $query),
+            'by_responsible'   => $this->groupByResponsible(clone $query),
             'by_category'      => $this->groupByCategory(clone $query),
             'by_store'         => $this->groupByStore(clone $query),
             'orders'           => $orders,
@@ -36,19 +39,23 @@ class OperationalReportService
         return Order::query()
             ->when(
                 isset($filters['date_from']),
-                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
+                fn($q) => $q->whereDate('orders.created_at', '>=', $filters['date_from'])
             )
             ->when(
                 isset($filters['date_to']),
-                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
+                fn($q) => $q->whereDate('orders.created_at', '<=', $filters['date_to'])
             )
             ->when(
                 isset($filters['store_id']),
-                fn($q) => $q->where('store_id', $filters['store_id'])
+                fn($q) => $q->where('orders.store_id', $filters['store_id'])
             )
             ->when(
                 isset($filters['category_id']),
-                fn($q) => $q->where('category_id', $filters['category_id'])
+                fn($q) => $q->where('orders.category_id', $filters['category_id'])
+            )
+            ->when(
+                isset($filters['responsible_id']),
+                fn($q) => $q->where('orders.responsible_id', $filters['responsible_id'])
             );
     }
 
@@ -93,6 +100,22 @@ class OperationalReportService
             ->toArray();
     }
 
+
+    private function groupByResponsible($query): array
+    {
+        return (clone $query)
+            ->join('users', 'orders.responsible_id', '=', 'users.id')
+            ->selectRaw('CONCAT(users.name, " ", users.lastname) as responsible, COUNT(*) as total, SUM(orders.weight) as total_weight')
+            ->groupBy('users.id', 'users.name', 'users.lastname')
+            ->orderByDesc('total')
+            ->get()
+            ->map(fn($row) => [
+                'responsible'  => $row->responsible,
+                'total'        => (int) $row->total,
+                'total_weight' => round((float) $row->total_weight, 3),
+            ])
+            ->toArray();
+    }
 
     private function groupByCategory($query): array
     {

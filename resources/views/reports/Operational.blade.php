@@ -1,8 +1,24 @@
 @extends('reports.layout')
 
+@php
+    function translateStatusOp($status) {
+        return match($status) {
+            'recebido_lisboa'      => 'Recebido em Lisboa',
+            'em_processamento'     => 'Em Processamento',
+            'pronto_expedicao'     => 'Pronto para Expedição',
+            'expedido'             => 'Expedido',
+            'em_transito'          => 'Em Trânsito',
+            'recebido_mocambique'  => 'Recebido em Moçambique',
+            'pronto_levantamento'  => 'Pronto para Levantamento',
+            'entregue'             => 'Entregue',
+            'sem_estado'           => 'Sem Estado',
+            default                => ucfirst(str_replace('_', ' ', $status ?? '-')),
+        };
+    }
+@endphp
+
 @section('content')
 
-{{-- REPORT TITLE --}}
 <div class="report-title">Relatório Operacional - Portador Diário</div>
 <div class="report-meta">
     Período:
@@ -12,7 +28,6 @@
     &nbsp;|&nbsp; Gerado em: <strong>{{ now()->format('d/m/Y H:i') }}</strong>
 </div>
 
-{{-- SUMMARY BOXES --}}
 <div class="summary-wrap">
     <div class="summary-box">
         <span class="s-label">Total Encomendas</span>
@@ -28,7 +43,6 @@
     </div>
 </div>
 
-
 {{-- BY STATUS --}}
 @if(count($by_status))
 <div class="section-title">Encomendas por Estado Actual</div>
@@ -42,7 +56,7 @@
     <tbody>
         @foreach($by_status as $row)
         <tr>
-            <td>{{ str_replace('_', ' ', ucfirst($row['status'])) }}</td>
+            <td>{{ translateStatusOp($row['status']) }}</td>
             <td>{{ $row['total'] }}</td>
         </tr>
         @endforeach
@@ -50,6 +64,28 @@
 </table>
 @endif
 
+{{-- BY RESPONSIBLE --}}
+@if(isset($by_responsible) && count($by_responsible))
+<div class="section-title">Por Responsável</div>
+<table class="dt">
+    <thead>
+        <tr>
+            <th>Responsável</th>
+            <th>Nº Encomendas</th>
+            <th>Peso Total (kg)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($by_responsible as $row)
+        <tr>
+            <td>{{ $row['responsible'] }}</td>
+            <td>{{ $row['total'] }}</td>
+            <td>{{ number_format($row['total_weight'], 3) }}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
 
 {{-- BY CATEGORY & STORE --}}
 <table style="width:100%;border-collapse:separate;border-spacing:8px 0;margin-bottom:8px">
@@ -107,30 +143,37 @@
             <th>Tracking</th>
             <th>Cliente</th>
             <th>Data</th>
+            <th>Categoria</th>
             <th>Loja</th>
             <th>Peso (kg)</th>
             <th>P. Taxado</th>
             <th>Estado</th>
+            <th>Data Entrega</th>
             <th>Responsável</th>
             <th>Entregue Por</th>
         </tr>
     </thead>
     <tbody>
         @forelse($orders as $order)
+        @php
+            $entregueStatus = $order->statuses?->where('descryption', 'entregue')->sortByDesc('created_at')->first();
+        @endphp
         <tr>
             <td>{{ $order->tracking }}</td>
-            <td> {{ ($order['client']['name'] ?? '') . ' ' . ($order['client']['lastname'] ?? '') }}</td>
+            <td>{{ ($order->client?->name ?? '') . ' ' . ($order->client?->lastname ?? '') }}</td>
             <td>{{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') }}</td>
+            <td>{{ $order->category?->category ?? '-' }}</td>
             <td>{{ $order->store?->name ?? '-' }}</td>
             <td>{{ $order->weight }}</td>
             <td>{{ $order->declared_weight ?? '-' }}</td>
-            <td>{{ $order->latestStatus?->descryption ? str_replace('_', ' ', $order->latestStatus->descryption) : '-' }}</td>
+            <td>{{ translateStatusOp($order->latestStatus?->descryption) }}</td>
+            <td>{{ $entregueStatus ? \Carbon\Carbon::parse($entregueStatus->created_at)->format('d/m/Y') : '-' }}</td>
             <td>{{ $order->responsible?->full_name ?? '-' }}</td>
-            <td>{{ optional($order->statuses?->where('descryption', 'entregue')->sortByDesc('created_at')->first())->responsible?->full_name ?? '-' }}</td>
+            <td>{{ $entregueStatus?->responsible?->full_name ?? '-' }}</td>
         </tr>
         @empty
         <tr>
-            <td colspan="9" class="empty-state">Nenhuma encomenda encontrada para os filtros seleccionados.</td>
+            <td colspan="11" class="empty-state">Nenhuma encomenda encontrada para os filtros seleccionados.</td>
         </tr>
         @endforelse
     </tbody>

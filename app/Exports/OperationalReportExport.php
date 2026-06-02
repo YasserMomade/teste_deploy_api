@@ -27,9 +27,8 @@ class OperationalSummarySheet implements FromArray, WithTitle, WithColumnWidths,
 
     public function __construct(
         private readonly array $summary,
-        private readonly array $byDestination,
         private readonly array $byStatus,
-        private readonly array $byServiceType,
+        private readonly array $byResponsible,
         private readonly array $byCategory,
         private readonly array $byStore,
         private readonly array $filters,
@@ -48,7 +47,7 @@ class OperationalSummarySheet implements FromArray, WithTitle, WithColumnWidths,
         // ===== Subtitle =====
         $period = ($this->filters['date_from'] ?? 'Início') .
             ' a ' .
-            ($this->filters['date_to'] ?? 'Hoje');
+            ($this->filters['date_to'] ?? now()->format('d/m/Y'));
 
         $rows[] = [
             'Período: ' . $period .
@@ -73,9 +72,8 @@ class OperationalSummarySheet implements FromArray, WithTitle, WithColumnWidths,
 
         $summaryRows = [
             ['Total de Encomendas', $this->summary['total_orders']],
-            ['Total de Volumes', $this->summary['total_volumes']],
-            ['Peso Real (kg)', number_format($this->summary['total_weight'], 3)],
-            ['Peso Taxado (kg)', number_format($this->summary['total_declared_weight'], 3)],
+            ['Peso Real (kg)',       number_format($this->summary['total_weight'], 3)],
+            ['Peso Taxado (kg)',     number_format($this->summary['total_declared_weight'], 3)],
         ];
 
         foreach ($summaryRows as $item) {
@@ -86,30 +84,6 @@ class OperationalSummarySheet implements FromArray, WithTitle, WithColumnWidths,
         $rows[] = ['', '', ''];
         $rowNum++;
 
-        // ===== By Destination =====
-        if (!empty($this->byDestination)) {
-
-            $this->sectionHeaderRows[] = $rowNum;
-            $rows[] = ['POR DESTINO', '', ''];
-            $rowNum++;
-
-            $this->tableHeaderRows[] = $rowNum;
-            $rows[] = ['Destino', 'Encomendas', 'Peso Total (kg)'];
-            $rowNum++;
-
-            foreach ($this->byDestination as $r) {
-                $rows[] = [
-                    $r['destination'],
-                    $r['total_orders'],
-                    number_format($r['total_weight'], 3)
-                ];
-
-                $rowNum++;
-            }
-
-            $rows[] = ['', '', ''];
-            $rowNum++;
-        }
 
         // ===== By Status =====
         if (!empty($this->byStatus)) {
@@ -124,8 +98,19 @@ class OperationalSummarySheet implements FromArray, WithTitle, WithColumnWidths,
 
             foreach ($this->byStatus as $r) {
 
+                $statusMap = [
+                    'recebido_lisboa'     => 'Recebido em Lisboa',
+                    'em_processamento'    => 'Em Processamento',
+                    'pronto_expedicao'    => 'Pronto para Expedição',
+                    'expedido'            => 'Expedido',
+                    'em_transito'         => 'Em Trânsito',
+                    'recebido_mocambique' => 'Recebido em Moçambique',
+                    'pronto_levantamento' => 'Pronto para Levantamento',
+                    'entregue'            => 'Entregue',
+                    'sem_estado'          => 'Sem Estado',
+                ];
                 $rows[] = [
-                    str_replace('_', ' ', ucfirst($r['status'])),
+                    $statusMap[$r['status']] ?? ucfirst(str_replace('_', ' ', $r['status'])),
                     $r['total'],
                     ''
                 ];
@@ -137,31 +122,6 @@ class OperationalSummarySheet implements FromArray, WithTitle, WithColumnWidths,
             $rowNum++;
         }
 
-        // ===== By Service Type =====
-        if (!empty($this->byServiceType)) {
-
-            $this->sectionHeaderRows[] = $rowNum;
-            $rows[] = ['POR TIPO DE SERVIÇO', '', ''];
-            $rowNum++;
-
-            $this->tableHeaderRows[] = $rowNum;
-            $rows[] = ['Tipo de Serviço', 'Total', ''];
-            $rowNum++;
-
-            foreach ($this->byServiceType as $r) {
-
-                $rows[] = [
-                    $r['service_type'],
-                    $r['total'],
-                    ''
-                ];
-
-                $rowNum++;
-            }
-
-            $rows[] = ['', '', ''];
-            $rowNum++;
-        }
 
         // ===== By Category =====
         if (!empty($this->byCategory)) {
@@ -413,36 +373,44 @@ class OperationalDetailSheet implements FromCollection, WithTitle, WithHeadings,
 
     public function collection()
     {
-        return collect($this->orders)->map(fn($order) => [
+        return collect($this->orders)->map(function($order) {
+            $entregueStatus = $order->statuses?->where('descryption', 'entregue')->sortByDesc('created_at')->first();
+            return [
             $order->tracking,
-            $order->client?->full_name ?? '-',
-            $order->origin,
-            $order->destination,
-            $order->reception_date?->format('d/m/Y') ?? '-',
-            $order->service_type,
+            trim(($order->client?->name ?? '') . ' ' . ($order->client?->lastname ?? '')) ?: '-',
+            $order->created_at?->format('d/m/Y') ?? '-',
             $order->category?->category ?? '-',
             $order->store?->name ?? '-',
-            $order->volume_number,
             $order->weight,
             $order->declared_weight ?? '-',
-            $order->latestStatus?->descryption
-                ? str_replace('_', ' ', $order->latestStatus->descryption)
-                : '-',
-            $order->responsible?->full_name ?? '-',
-            // Entregue por
-            optional(
-                $order->statuses?->where('descryption', 'entregue')->sortByDesc('created_at')->first()
-            )->responsible?->full_name ?? '-',
-        ]);
+            (function($s) {
+                $map = [
+                    'recebido_lisboa'     => 'Recebido em Lisboa',
+                    'em_processamento'    => 'Em Processamento',
+                    'pronto_expedicao'    => 'Pronto para Expedição',
+                    'expedido'            => 'Expedido',
+                    'em_transito'         => 'Em Trânsito',
+                    'recebido_mocambique' => 'Recebido em Moçambique',
+                    'pronto_levantamento' => 'Pronto para Levantamento',
+                    'entregue'            => 'Entregue',
+                    'sem_estado'          => 'Sem Estado',
+                ];
+                return $map[$s] ?? ucfirst(str_replace('_', ' ', $s ?? '-'));
+            })($order->latestStatus?->descryption),
+            trim(($order->responsible?->name ?? '') . ' ' . ($order->responsible?->lastname ?? '')) ?: '-',
+            $entregueStatus ? \Carbon\Carbon::parse($entregueStatus->created_at)->format('d/m/Y') : '-',
+            $entregueStatus?->responsible?->full_name ?? '-',
+            ];
+        });
     }
 
     public function headings(): array
     {
         return [
-            'Tracking', 'Cliente', 'Origem', 'Destino', 'Data Recepção',
-            'Tipo Serviço', 'Categoria', 'Loja', 'Volumes',
-            'Peso (kg)', 'Peso Taxado (kg)', 'Estado Actual',
-            'Responsável', 'Entregue Por',
+            'Tracking', 'Cliente', 'Data',
+            'Categoria', 'Loja',
+            'Peso (kg)', 'Peso Taxado (kg)',
+            'Estado Actual', 'Responsável', 'Data Entrega', 'Entregue Por',
         ];
     }
 
@@ -451,9 +419,9 @@ class OperationalDetailSheet implements FromCollection, WithTitle, WithHeadings,
     public function columnWidths(): array
     {
         return [
-            'A' => 20, 'B' => 26, 'C' => 14, 'D' => 16, 'E' => 14,
-            'F' => 14, 'G' => 16, 'H' => 18, 'I' => 8,
-            'J' => 10, 'K' => 14, 'L' => 20, 'M' => 20, 'N' => 20,
+            'A' => 20, 'B' => 26, 'C' => 14,
+            'D' => 16, 'E' => 18,
+            'F' => 12, 'G' => 14, 'H' => 20, 'I' => 22, 'J' => 14, 'K' => 22,
         ];
     }
 
@@ -465,7 +433,7 @@ class OperationalDetailSheet implements FromCollection, WithTitle, WithHeadings,
                 $lastRow = $sheet->getHighestRow();
 
                 // Header
-                $sheet->getStyle('A1:N1')->applyFromArray([
+                $sheet->getStyle('A1:K1')->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['rgb' => self::WHITE], 'size' => 9],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
@@ -477,7 +445,7 @@ class OperationalDetailSheet implements FromCollection, WithTitle, WithHeadings,
                 // Data rows
                 for ($row = 2; $row <= $lastRow; $row++) {
                     $bg = ($row % 2 === 0) ? self::LIGHT : 'FFFFFF';
-                    $sheet->getStyle("A{$row}:N{$row}")->applyFromArray([
+                    $sheet->getStyle("A{$row}:K{$row}")->applyFromArray([
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                         'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
@@ -486,7 +454,7 @@ class OperationalDetailSheet implements FromCollection, WithTitle, WithHeadings,
                 }
 
                 // Outer border
-                $sheet->getStyle("A1:N{$lastRow}")->applyFromArray([
+                $sheet->getStyle("A1:K{$lastRow}")->applyFromArray([
                     'borders' => ['outline' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['rgb' => self::PURPLE]]],
                 ]);
 
@@ -506,9 +474,8 @@ class OperationalReportExport implements WithMultipleSheets
         return [
             new OperationalSummarySheet(
                 $this->data['summary'],
-                $this->data['by_destination'],
                 $this->data['by_status'],
-                $this->data['by_service_type'],
+                $this->data['by_responsible'],
                 $this->data['by_category'],
                 $this->data['by_store'],
                 $this->data['filters_applied'],

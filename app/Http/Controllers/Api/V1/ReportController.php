@@ -87,6 +87,7 @@ class ReportController extends Controller
     public function operational(Request $request): JsonResponse
     {
         $filters = $this->validateOperationalFilters($request);
+        $filters = $this->applyManagerFilter($filters);
         $data = $this->operationalService->generate($filters);
 
         return $this->success($data);
@@ -95,6 +96,7 @@ class ReportController extends Controller
     public function exportOperational(Request $request): mixed
     {
         $filters = $this->validateOperationalFilters($request);
+        $filters = $this->applyManagerFilter($filters);
         $format  = $request->input('format', 'excel');
         $data    = $this->operationalService->generate($filters);
 
@@ -113,6 +115,17 @@ class ReportController extends Controller
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('relatorio_operacional_' . now()->format('Ymd_His') . '.pdf');
+    }
+
+    private function applyManagerFilter(array $filters): array
+    {
+        $user = auth()->user();
+
+        if ($user && $user->role === 'manager') {
+            $filters['responsible_id'] = $user->id;
+        }
+
+        return $filters;
     }
 
     private function validateOperationalFilters(Request $request): array
