@@ -65,7 +65,6 @@ class UserService
             $updateData['password'] = Hash::make($data['password']);
         }
 
-        // Regenerate user_code if role changed
         if (isset($data['role']) && $data['role'] !== $user->role->value) {
             $updateData['user_code'] = $this->generateUserCode(RoleEnum::from($data['role']));
         }
@@ -81,16 +80,14 @@ class UserService
             throw new \DomainException('You cannot delete your own account.');
         }
 
-        // Revoke all tokens before deleting
         $user->tokens()->delete();
-        $user->delete(); // Hard delete — sem softDeletes
+        $user->delete(); 
     }
 
     public function resetPassword(User $user, string $newPassword): void
     {
         $user->update(['password' => Hash::make($newPassword)]);
 
-        // Force re-login after password reset
         $user->tokens()->delete();
     }
 
