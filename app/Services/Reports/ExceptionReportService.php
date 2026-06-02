@@ -10,600 +10,271 @@ use Illuminate\Support\Collection;
 
 class ExceptionReportService
 {
-    // Weight per level for quality scoring
-    private const LEVEL_WEIGHTS = [
-        'good' => 4,
-        'medium' => 3,
-        'bad' => 2,
-        'critical' => 1,
-    ];
-
-    // === Entry point ========
+    private const STALLED_DAYS = 7;
 
     public function generate(array $filters = []): array
     {
-        $delays = $this->getDelays($filters);
+        $delays  = $this->getDelays($filters);
+        $stalled = $this->getStalledOrders($filters);
         $quality = $this->getQuality($filters);
 
         return [
-            'delays'  => $delays,
-            'quality' => $quality,
-            'summary' => [
-                'total_delayed'   => $delays['summary']['total_delayed'],
-                'quality_score'   => $quality['score']['score'],
-                'quality_label'   => $quality['score']['label'],
-                'total_critical'  => $quality['summary']['total_critical'],
+            'delays'   => $delays,
+            'stalled'  => $stalled,
+            'quality'  => $quality,
+            'summary'  => [
+                'total_in_transit_delayed' => $delays['summary']['total_delayed'],
+                'total_arrived_late'       => $delays['summary']['total_arrived_late'],
+                'total_stalled'            => count($stalled),
+                'total_critical_obs'       => $quality['summary']['total_critical'],
             ],
             'filters_applied' => $filters,
         ];
     }
 
-    // == Existing exception sections =============
-
     private function buildBaseQuery(array $filters)
     {
         return Order::query()
-            ->when(
-                isset($filters['date_from']),
-                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
-            )
-            ->when(
-                isset($filters['date_to']),
-                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
-            );
+            ->when(isset($filters['date_from']), fn($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+            ->when(isset($filters['date_to']),   fn($q) => $q->whereDate('created_at', '<=', $filters['date_to']));
     }
 
-    private function getOrdersWithoutClient(array $filters)
+    private function withRelations()
     {
-        return $this->buildBaseQuery($filters)
-            ->whereNull('client_id')
-            ->with([
-                'responsible:id,name,lastname,user_code',
-                'category:id,category',
-                'store:id,name',
-            ])
-            ->get([
-                'id',
-                'tracking',
-                'reception_date',
-                'weight',
-                'responsible_id',
-                'category_id',
-                'store_id',
-            ]);
+        return [
+            'client:id,name,lastname',
+            'responsible:id,name,lastname,user_code,counter_id',
+            'responsible.counter:id,country_id',
+            'responsible.counter.country:id,name',
+            'store:id,name',
+            'statuses:id,order_id,descryption,responsible_id,created_at',
+            'statuses.responsible:id,name,lastname,user_code',
+        ];
     }
-
-    private function getOrdersWithoutInvoice(array $filters)
-    {
-        return $this->buildBaseQuery($filters)
-            ->whereNull('invoice_id')
-            ->with([
-                'client:id,name,lastname',
-                'responsible:id,name,lastname,user_code',
-            ])
-            ->get([
-                'id',
-                'tracking',
-                'reception_date',
-                'weight',
-                'client_id',
-                'responsible_id',
-            ]);
-    }
-
-    private function getOrdersWithoutDeclaredWeight(array $filters)
-    {
-        return $this->buildBaseQuery($filters)
-            ->whereNull('declared_weight')
-            ->with([
-                'client:id,name,lastname',
-                'responsible:id,name,lastname,user_code',
-            ])
-            ->get([
-                'id',
-                'tracking',
-                'reception_date',
-                'weight',
-                'client_id',
-                'responsible_id',
-            ]);
-    }
-
-    private function getOrdersWithoutStatus(array $filters)
-    {
-        return $this->buildBaseQuery($filters)
-            ->whereDoesntHave('statuses')
-            ->with([
-                'client:id,name,lastname',
-                'responsible:id,name,lastname,user_code',
-            ])
-            ->get([
-                'id',
-                'tracking',
-                'reception_date',
-                'weight',
-                'client_id',
-                'responsible_id',
-            ]);
-    }
-
-    private function getInvoicesWithNullStatus(array $filters)
-    {
-        return $this->buildBaseQuery($filters)
-            ->join('invoices', 'orders.invoice_id', '=', 'invoices.id')
-            ->whereNull('invoices.payment_status')
-            ->with([
-                'client:id,name,lastname',
-                'invoice',
-            ])
-            ->select(
-                'orders.id',
-                'orders.tracking',
-                'orders.reception_date',
-                'orders.client_id',
-                'orders.invoice_id'
-            )
-            ->get();
-    }
-
-    // == Delays =====
 
     private function getDelays(array $filters): array
     {
-        $orders = Order::query()
-            ->with([
-                'client:id,name,lastname',
-                'responsible:id,name,lastname,user_code,counter_id',
-                'responsible.counter:id,country_id',
-                'responsible.counter.country:id,name',
-                'store:id,name',
-                'statuses:id,order_id,descryption,responsible_id,created_at',
-                'statuses.responsible:id,name,lastname,user_code',
-            ])
-            ->whereHas(
-                'statuses',
-                fn($q) => $q->where('descryption', 'em_transito')
-            )
-            ->when(
-                isset($filters['date_from']),
-                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
-            )
-            ->when(
-                isset($filters['date_to']),
-                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
-            )
+        $inTransit = Order::query()
+            ->with($this->withRelations())
+            ->whereHas('statuses', fn($q) => $q->where('descryption', 'em_transito'))
+            ->whereDoesntHave('statuses', fn($q) => $q->whereIn('descryption', ['recebido_mocambique', 'pronto_levantamento', 'entregue']))
+            ->when(isset($filters['date_from']), fn($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+            ->when(isset($filters['date_to']),   fn($q) => $q->whereDate('created_at', '<=', $filters['date_to']))
             ->get();
 
-        $delayed = [];
-        $onTime = [];
-        $noConfig = [];
+        $arrived = Order::query()
+            ->with($this->withRelations())
+            ->whereHas('statuses', fn($q) => $q->where('descryption', 'em_transito'))
+            ->whereHas('statuses',  fn($q) => $q->whereIn('descryption', ['recebido_mocambique', 'pronto_levantamento', 'entregue']))
+            ->when(isset($filters['date_from']), fn($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+            ->when(isset($filters['date_to']),   fn($q) => $q->whereDate('created_at', '<=', $filters['date_to']))
+            ->get();
 
-        foreach ($orders as $order) {
+        $delayed      = [];
+        $onTime       = [];
+        $noConfig     = [];
+        $arrivedLate  = [];
+        $arrivedOnTime = [];
 
+        foreach ($inTransit as $order) {
             $analysis = $this->analyseDelay($order);
-
             if ($analysis === null) {
                 $noConfig[] = $this->buildDelayRow($order, null);
                 continue;
             }
+            $analysis['is_delayed'] ? $delayed[] = $this->buildDelayRow($order, $analysis)
+                : $onTime[]  = $this->buildDelayRow($order, $analysis);
+        }
 
-            if ($analysis['is_delayed']) {
-                $delayed[] = $this->buildDelayRow($order, $analysis);
-            } else {
-                $onTime[] = $this->buildDelayRow($order, $analysis);
-            }
+        foreach ($arrived as $order) {
+            $analysis = $this->analyseDelay($order);
+            if ($analysis === null) continue;
+            $analysis['is_delayed'] ? $arrivedLate[]   = $this->buildDelayRow($order, $analysis)
+                : $arrivedOnTime[] = $this->buildDelayRow($order, $analysis);
         }
 
         return [
             'summary' => [
-                'total_analysed' => count($orders),
-                'total_delayed' => count($delayed),
-                'total_on_time' => count($onTime),
-                'total_no_config' => count($noConfig),
+                'total_in_transit'     => count($inTransit),
+                'total_delayed'        => count($delayed),
+                'total_on_time'        => count($onTime),
+                'total_no_config'      => count($noConfig),
+                'total_arrived_late'   => count($arrivedLate),
+                'total_arrived_on_time' => count($arrivedOnTime),
             ],
-            'delayed' => $delayed,
-            'on_time' => $onTime,
-            'no_config' => $noConfig,
+            'delayed'         => $delayed,
+            'on_time'         => $onTime,
+            'no_config'       => $noConfig,
+            'arrived_late'    => $arrivedLate,
+            'arrived_on_time' => $arrivedOnTime,
         ];
     }
 
     private function analyseDelay(Order $order): ?array
     {
-        $transitStatus = $order->statuses
-            ->where('descryption', 'em_transito')
-            ->sortBy('created_at')
-            ->first();
-
-        if (!$transitStatus) {
-            return null;
-        }
+        $transitStatus = $order->statuses->where('descryption', 'em_transito')->sortBy('created_at')->first();
+        if (!$transitStatus) return null;
 
         $transitConfig = $this->findTransitConfig($order);
-
-        if (!$transitConfig) {
-            return null;
-        }
+        if (!$transitConfig) return null;
 
         $transitStartedAt = Carbon::parse($transitStatus->created_at);
+        $actualDeparture  = $this->getNextDeparture($transitStartedAt, $transitConfig->departure_days);
+        $deadline         = $actualDeparture->copy()->addHours($transitConfig->expected_hours);
 
-        $actualDeparture = $this->getNextDeparture(
-            $transitStartedAt,
-            $transitConfig->departure_days
-        );
+        $finalStatuses = ['entregue', 'recebido_mocambique', 'pronto_levantamento'];
+        $deliveredStatus = $order->statuses->whereIn('descryption', $finalStatuses)->sortByDesc('created_at')->first();
+        $referenceTime   = $deliveredStatus ? Carbon::parse($deliveredStatus->created_at) : Carbon::now();
 
-        $deadline = $actualDeparture
-            ->copy()
-            ->addHours($transitConfig->expected_hours);
-
-        $deliveredStatus = $order->statuses
-            ->where('descryption', 'entregue')
-            ->sortByDesc('created_at')
-            ->first();
-
-        $referenceTime = $deliveredStatus
-            ? Carbon::parse($deliveredStatus->created_at)
-            : Carbon::now();
-
-        $isDelayed = $referenceTime->isAfter($deadline);
-
-        $delayHours = $isDelayed
-            ? $deadline->diffInHours($referenceTime)
-            : 0;
-
+        $isDelayed    = $referenceTime->isAfter($deadline);
+        $delayHours   = $isDelayed ? $deadline->diffInHours($referenceTime) : 0;
         $elapsedHours = $actualDeparture->diffInHours($referenceTime);
 
         return [
-            'transit_started_at' => $transitStartedAt->toDateTimeString(),
+            'transit_started_at'  => $transitStartedAt->toDateTimeString(),
             'actual_departure_at' => $actualDeparture->toDateTimeString(),
-            'deadline_at' => $deadline->toDateTimeString(),
-            'delivered_at' => $deliveredStatus?->created_at,
-            'elapsed_hours' => $elapsedHours,
-            'delay_hours' => $delayHours,
-            'expected_hours' => $transitConfig->expected_hours,
-            'is_delayed' => $isDelayed,
-            'is_delivered' => (bool) $deliveredStatus,
-
-            'delivered_by' => $deliveredStatus?->responsible?->full_name ?? '-',
+            'deadline_at'         => $deadline->toDateTimeString(),
+            'delivered_at'        => $deliveredStatus?->created_at,
+            'elapsed_hours'       => $elapsedHours,
+            'delay_hours'         => $delayHours,
+            'expected_hours'      => $transitConfig->expected_hours,
+            'is_delayed'          => $isDelayed,
+            'is_delivered'        => (bool) $deliveredStatus,
+            'delivered_by'        => $deliveredStatus?->responsible?->full_name ?? '-',
         ];
     }
 
     private function findTransitConfig(Order $order): ?TransitTime
     {
-        // Origem: país do balcão do responsável pela encomenda
         $originCountryId = $order->responsible?->counter?->country_id;
-
-        if (!$originCountryId) {
-            return null;
-        }
-
-        // Tenta encontrar configuração de trânsito a partir do país de origem
-        // Service type foi removido — usa 'normal' como fallback
-        return TransitTime::query()
-            ->where('origin_country_id', $originCountryId)
-            ->first();
+        if (!$originCountryId) return null;
+        return TransitTime::query()->where('origin_country_id', $originCountryId)->first();
     }
 
     private function getNextDeparture(Carbon $from, array $days): Carbon
     {
         $current = $from->copy();
-
         for ($i = 0; $i <= 7; $i++) {
-
-            if (in_array((int) $current->format('N'), $days)) {
-                return $current->startOfDay();
-            }
-
+            if (in_array((int) $current->format('N'), $days)) return $current->startOfDay();
             $current->addDay();
         }
-
         return $from->copy();
     }
 
     private function buildDelayRow(Order $order, ?array $analysis): array
     {
         return [
-            'id'             => $order->id,
-            'tracking'       => $order->tracking,
-            'client'         => $order->client?->full_name ?? '-',
-            'store'          => $order->store?->name ?? '-',
-            'responsible'    => $order->responsible?->full_name ?? '-',
-            'created_at'     => $order->created_at?->format('d/m/Y'),
-            'analysis'       => $analysis,
+            'id'          => $order->id,
+            'tracking'    => $order->tracking,
+            'client'      => $order->client?->full_name ?? '-',
+            'store'       => $order->store?->name ?? '-',
+            'responsible' => $order->responsible?->full_name ?? '-',
+            'created_at'  => $order->created_at?->format('d/m/Y'),
+            'analysis'    => $analysis,
         ];
     }
 
-    // === Quality ===========
+    private function getStalledOrders(array $filters): array
+    {
+        $cutoff = Carbon::now()->subDays(self::STALLED_DAYS);
+
+        $orders = $this->buildBaseQuery($filters)
+            ->with([
+                'client:id,name,lastname',
+                'responsible:id,name,lastname,user_code',
+                'store:id,name',
+                'statuses:id,order_id,descryption,created_at',
+            ])
+            ->whereHas('statuses')
+            ->whereDoesntHave('statuses', fn($q) => $q->whereIn('descryption', ['entregue', 'recebido_mocambique', 'pronto_levantamento']))
+            ->get()
+            ->filter(function ($order) use ($cutoff) {
+                $lastStatus = $order->statuses->sortByDesc('created_at')->first();
+                return $lastStatus && Carbon::parse($lastStatus->created_at)->isBefore($cutoff);
+            });
+
+        return $orders->map(function ($order) {
+            $lastStatus = $order->statuses->sortByDesc('created_at')->first();
+            return [
+                'id'           => $order->id,
+                'tracking'     => $order->tracking,
+                'client'       => $order->client?->full_name ?? '-',
+                'store'        => $order->store?->name ?? '-',
+                'responsible'  => $order->responsible?->full_name ?? '-',
+                'last_status'  => $lastStatus?->descryption ?? '-',
+                'last_update'  => $lastStatus ? Carbon::parse($lastStatus->created_at)->format('d/m/Y') : '-',
+                'days_stalled' => $lastStatus ? Carbon::parse($lastStatus->created_at)->diffInDays(Carbon::now()) : '-',
+            ];
+        })->values()->toArray();
+    }
 
     private function getQuality(array $filters): array
     {
         $observations = Observation::query()
-            ->with([
-                'creator:id,name,lastname,user_code',
-
-                'order:id,tracking,client_id',
-
-                'order.client:id,name,lastname',
-            ])
-            ->when(
-                isset($filters['date_from']),
-                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
-            )
-            ->when(
-                isset($filters['date_to']),
-                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
-            )
+            ->with(['creator:id,name,lastname,user_code', 'order:id,tracking,client_id', 'order.client:id,name,lastname'])
+            ->when(isset($filters['date_from']), fn($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+            ->when(isset($filters['date_to']),   fn($q) => $q->whereDate('created_at', '<=', $filters['date_to']))
             ->get();
 
         if ($observations->isEmpty()) {
-            return $this->emptyQuality();
+            return [
+                'summary'              => ['total_observations' => 0, 'total_good' => 0, 'total_medium' => 0, 'total_bad' => 0, 'total_critical' => 0],
+                'critical_and_bad_orders' => [],
+            ];
         }
 
+        $counts = $observations->groupBy(fn($obs) => $this->levelValue($obs))->map->count();
+
         return [
-            'summary' => $this->buildQualitySummary($observations),
-
-            'score' => $this->calculateScore($observations),
-
-            'by_level' => $this->groupByLevel($observations),
-
-            'by_responsible' => $this->groupByResponsible($observations),
-
+            'summary' => [
+                'total_observations' => $observations->count(),
+                'total_good'         => $counts->get('good', 0),
+                'total_medium'       => $counts->get('medium', 0),
+                'total_bad'          => $counts->get('bad', 0),
+                'total_critical'     => $counts->get('critical', 0),
+            ],
             'critical_and_bad_orders' => $this->getCriticalOrders($filters),
-
-            'trend' => $this->getQualityTrend($filters),
         ];
-    }
-
-    private function buildQualitySummary(Collection $observations): array
-    {
-        $counts = $observations
-            ->groupBy(fn($obs) => $this->levelValue($obs))
-            ->map->count();
-
-        return [
-            'total_observations' => $observations->count(),
-            'total_good' => $counts->get('good', 0),
-            'total_medium' => $counts->get('medium', 0),
-            'total_bad' => $counts->get('bad', 0),
-            'total_critical' => $counts->get('critical', 0),
-        ];
-    }
-
-    private function calculateScore(Collection $observations): array
-    {
-        $totalWeight = $observations->sum(
-            fn($obs) =>
-            self::LEVEL_WEIGHTS[$this->levelValue($obs)] ?? 3
-        );
-
-        $maxWeight = $observations->count() * 4;
-
-        $score = $maxWeight > 0
-            ? round($totalWeight / $maxWeight * 4, 2)
-            : 0;
-
-        return [
-            'score' => $score,
-
-            'max_score' => 4.00,
-
-            'percentage' => round($score / 4 * 100, 1),
-
-            'label' => $this->scoreLabel($score),
-        ];
-    }
-
-    private function groupByLevel(Collection $observations): array
-    {
-        return $observations
-            ->groupBy(fn($obs) => $this->levelValue($obs))
-            ->map(
-                fn($group, $level) => [
-                    'level' => $level,
-
-                    'total' => $group->count(),
-
-                    'percentage' => round(
-                        $group->count() / $observations->count() * 100,
-                        1
-                    ),
-                ]
-            )
-            ->values()
-            ->toArray();
-    }
-
-    private function groupByResponsible(Collection $observations): array
-    {
-        return $observations
-            ->groupBy(fn($obs) => $obs->creator?->id)
-            ->map(function ($group) {
-                $levelCounts = $group
-                    ->groupBy(fn($obs) => $this->levelValue($obs))
-                    ->map->count();
-
-                $score = $this->calculateScore($group);
-
-                return [
-
-                    'responsible' => $group->first()?->creator?->full_name ?? '-',
-
-                    'user_code' => $group->first()?->creator?->user_code ?? '-',
-
-                    'total' => $group->count(),
-
-                    'good' => $levelCounts->get('good', 0),
-                    'medium' => $levelCounts->get('medium', 0),
-                    'bad' => $levelCounts->get('bad', 0),
-                    'critical' => $levelCounts->get('critical', 0),
-                    'score' => $score['score'],
-                    'score_label' => $score['label'],
-                ];
-            })
-            ->sortBy('score')
-            ->values()
-            ->toArray();
     }
 
     private function getCriticalOrders(array $filters): array
     {
         return Order::query()
             ->with([
-
                 'client:id,name,lastname',
-
                 'responsible:id,name,lastname,user_code',
-
                 'observations' => fn($q) => $q
                     ->whereIn('level', ['bad', 'critical'])
-
-                    ->when(
-                        isset($filters['date_from']),
-                        fn($q) =>
-                        $q->whereDate('created_at', '>=', $filters['date_from'])
-                    )
-
-                    ->when(
-                        isset($filters['date_to']),
-                        fn($q) =>
-                        $q->whereDate('created_at', '<=', $filters['date_to'])
-                    )
-
+                    ->when(isset($filters['date_from']), fn($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+                    ->when(isset($filters['date_to']),   fn($q) => $q->whereDate('created_at', '<=', $filters['date_to']))
                     ->with('creator:id,name,lastname,user_code'),
             ])
             ->whereHas(
                 'observations',
                 fn($q) => $q
                     ->whereIn('level', ['bad', 'critical'])
-
-                    ->when(
-                        isset($filters['date_from']),
-                        fn($q) =>
-                        $q->whereDate('created_at', '>=', $filters['date_from'])
-                    )
-
-                    ->when(
-                        isset($filters['date_to']),
-                        fn($q) =>
-                        $q->whereDate('created_at', '<=', $filters['date_to'])
-                    )
+                    ->when(isset($filters['date_from']), fn($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+                    ->when(isset($filters['date_to']),   fn($q) => $q->whereDate('created_at', '<=', $filters['date_to']))
             )
             ->get()
-
             ->map(fn($order) => [
-
-                'tracking' => $order->tracking,
-
-                'client' => $order->client?->full_name ?? '-',
-
-                'responsible' => $order->responsible?->full_name ?? '-',
-
-                'observations' => $order->observations
-                    ->map(fn($obs) => [
-
-                        'level' => $this->levelValue($obs),
-
-                        'description' => $obs->description,
-
-                        'created_by' => $obs->creator?->full_name ?? '-',
-
-                        'created_at' => Carbon::parse(
-                            $obs->created_at
-                        )->format('d/m/Y H:i'),
-
-                    ])
-                    ->toArray(),
-
+                'tracking'     => $order->tracking,
+                'client'       => $order->client?->full_name ?? '-',
+                'responsible'  => $order->responsible?->full_name ?? '-',
+                'observations' => $order->observations->map(fn($obs) => [
+                    'level'       => $this->levelValue($obs),
+                    'description' => $obs->description,
+                    'created_by'  => $obs->creator?->full_name ?? '-',
+                    'created_at'  => Carbon::parse($obs->created_at)->format('d/m/Y H:i'),
+                ])->toArray(),
             ])
             ->toArray();
     }
-
-    private function getQualityTrend(array $filters): array
-    {
-        return Observation::query()
-            ->selectRaw('DATE(created_at) as date, level, COUNT(*) as total')
-
-            ->when(
-                isset($filters['date_from']),
-                fn($q) => $q->whereDate('created_at', '>=', $filters['date_from'])
-            )
-
-            ->when(
-                isset($filters['date_to']),
-                fn($q) => $q->whereDate('created_at', '<=', $filters['date_to'])
-            )
-
-            ->groupBy('date', 'level')
-
-            ->orderBy('date')
-
-            ->get()
-
-            ->groupBy('date')
-
-            ->map(fn($group, $date) => [
-
-                'date' => $date,
-
-                'good' => $group->where('level', 'good')->sum('total'),
-
-                'medium' => $group->where('level', 'medium')->sum('total'),
-
-                'bad' => $group->where('level', 'bad')->sum('total'),
-
-                'critical' => $group->where('level', 'critical')->sum('total'),
-
-            ])
-            ->values()
-            ->toArray();
-    }
-
-    // == Helpers ===============
 
     private function levelValue(Observation $obs): string
     {
         return $obs->level instanceof \App\Enums\ObservationLevelEnum
             ? $obs->level->value
             : (string) $obs->level;
-    }
-
-    private function scoreLabel(float $score): string
-    {
-        return match (true) {
-
-            $score >= 3.5 => 'Excelente',
-
-            $score >= 2.5 => 'Bom',
-
-            $score >= 1.5 => 'Regular',
-
-            default => 'Crítico',
-        };
-    }
-
-    private function emptyQuality(): array
-    {
-        return [
-            'summary' => [
-                'total_observations' => 0,
-                'total_good' => 0,
-                'total_medium' => 0,
-                'total_bad' => 0,
-                'total_critical' => 0,
-            ],
-            'score' => [
-                'score' => 0,
-                'max_score' => 4.00,
-                'percentage' => 0,
-                'label' => 'Sem dados',
-            ],
-
-            'by_level' => [],
-
-            'by_responsible' => [],
-
-            'critical_and_bad_orders' => [],
-
-            'trend' => [],
-        ];
     }
 }
