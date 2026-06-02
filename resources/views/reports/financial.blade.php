@@ -11,8 +11,9 @@
 
     function paymentMethod($method) {
         return match($method) {
-            'cash' => 'Dinheiro',
-            'card' => 'Cartão',
+            'cash'  => 'Dinheiro',
+            'card'  => 'Cartão',
+            default => ucfirst($method ?? '-'),
         };
     }
 
@@ -136,7 +137,7 @@
             <td>{{ \Carbon\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
             <td>{{ $row['total_orders'] }}</td>
             <td>{{ number_format($row['total_to_pay'], 2) . ' €' }}</td>
-            <td>{{ ($row['total_paid'] ?? 0) > 0 ? number_format($row['total_paid'], 2) . ' €' : '-'}}</td>
+            <td>{{ ($order->invoice?->amount_paid ?? 0) > 0 ? number_format($order->invoice->amount_paid, 2) . ' €' : '-'}}</td>
             <td>{{ number_format($row['total_weight'], 3) }}</td>
         </tr>
         @endforeach
@@ -168,7 +169,7 @@
             <td> {{ ($order['client']['name'] ?? '') . ' ' . ($order['client']['lastname'] ?? '') }}</td>
             <td>{{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') }}</td>
             <td>{{ number_format($order->invoice?->amountTo_pay ?? 0, 2) . ' €'}}</td>
-            <td>{{ ($row['total_paid'] ?? 0) > 0 ? number_format($row['total_paid'], 2) . ' €' : '-'}}</td>
+            <td>{{ ($order->invoice?->amount_paid ?? 0) > 0 ? number_format($order->invoice->amount_paid, 2) . ' €' : '-'}}</td>
             <td>{{ number_format(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice?->amount_paid ?? 0), 2) . ' €' }}</td>
             <td>
                 @php $st = $order->invoice?->payment_status ?? 'pendent' @endphp
@@ -181,7 +182,7 @@
             </td>
 
             <td>{{ $order->invoice?->referencie ?? '-' }}</td>
-            <td>{{ ($order->responsible?->name ?? '') . '' . ($order->responsible?->lastname ?? '') }}</td>
+            <td>{{ ($order->responsible?->name ?? '') . ' ' . ($order->responsible?->lastname ?? '') }}</td>
         </tr>
         @empty
         <tr>
