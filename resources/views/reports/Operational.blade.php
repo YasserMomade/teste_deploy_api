@@ -112,6 +112,7 @@
             <th>P. Taxado</th>
             <th>Estado</th>
             <th>Responsável</th>
+            <th>Entregue Por</th>
         </tr>
     </thead>
     <tbody>
@@ -125,10 +126,11 @@
             <td>{{ $order->declared_weight ?? '-' }}</td>
             <td>{{ $order->latestStatus?->descryption ? str_replace('_', ' ', $order->latestStatus->descryption) : '-' }}</td>
             <td>{{ $order->responsible?->full_name ?? '-' }}</td>
+            <td>{{ optional($order->statuses?->where('descryption', 'entregue')->sortByDesc('created_at')->first())->responsible?->full_name ?? '-' }}</td>
         </tr>
         @empty
         <tr>
-            <td colspan="8" class="empty-state">Nenhuma encomenda encontrada para os filtros seleccionados.</td>
+            <td colspan="9" class="empty-state">Nenhuma encomenda encontrada para os filtros seleccionados.</td>
         </tr>
         @endforelse
     </tbody>
