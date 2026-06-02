@@ -72,7 +72,7 @@ private function translatePaymentMethod(?string $method): string
         $rows[] = ['PORTADOR DIÁRIO - RELATÓRIO FINANCEIRO', '', '', ''];
         $rowNum++;
 
-        $period = ($this->filters['date_from'] ?? 'Início') . ' a ' . ($this->filters['date_to'] ?? 'Hoje');
+        $period = ($this->filters['date_from'] ?? 'Início') . ' a ' . ($this->filters['date_to'] ?? now()->format('d/m/Y'));
         $rows[] = ['Período: ' . $period . '  |  Gerado em: ' . now()->format('d/m/Y H:i'), '', '', ''];
         $rowNum++;
 
@@ -89,13 +89,11 @@ private function translatePaymentMethod(?string $method): string
         $rowNum++;
 
         $kpis = [
-            ['Total a Cobrar', number_format($this->summary['total_to_pay'], 2)],
-            ['Total Cobrado', number_format($this->summary['total_paid'], 2)],
-            ['Total em Dívida', number_format($this->summary['total_debt'], 2)],
-            ['Encomendas Pagas', $this->summary['total_paid_orders']],
+            ['Total a Cobrar',       number_format($this->summary['total_to_pay'], 2)],
+            ['Total Cobrado',        number_format($this->summary['total_paid'], 2)],
+            ['Total em Dívida',      number_format($this->summary['total_debt'], 2)],
+            ['Encomendas Pagas',     $this->summary['total_paid_orders']],
             ['Encomendas Pendentes', $this->summary['total_pendent_orders']],
-            ['Expresso', $this->summary['total_express']],
-            ['Normal', $this->summary['total_normal']],
         ];
 
         foreach ($kpis as $kpi) {
@@ -354,16 +352,15 @@ private function translatePaymentMethod(?string $method): string
 
             return [
                 $order->tracking,
-                $order->client?->name ?? '-',
-                $order->reception_date?->format('d/m/Y') ?? '-',
-                $order->destination,
+                trim(($order->client?->name ?? '') . ' ' . ($order->client?->lastname ?? '')) ?: '-',
+                $order->created_at?->format('d/m/Y') ?? '-',
                 number_format($order->invoice?->amountTo_pay ?? 0, 2),
                 number_format($order->invoice?->amount_paid ?? 0, 2),
                 number_format(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice?->amount_paid ?? 0), 2),
                 $this->translateStatus($status),
                 $this->translatePaymentMethod($order->invoice?->payment_method),
                 $order->invoice?->referencie ?? '-',
-                $order->responsible?->full_name ?? '-',
+                trim(($order->responsible?->name ?? '') . ' ' . ($order->responsible?->lastname ?? '')) ?: '-',
             ];
         });
 
@@ -373,7 +370,7 @@ private function translatePaymentMethod(?string $method): string
     public function headings(): array
     {
         return [
-            'Tracking', 'Cliente', 'Data Recepção', 'Destino',
+            'Tracking', 'Cliente', 'Data',
             'A Pagar', 'Pago', 'Saldo', 'Estado Pagamento',
             'Método', 'Referência', 'Responsável',
         ];
@@ -384,9 +381,9 @@ private function translatePaymentMethod(?string $method): string
     public function columnWidths(): array
     {
         return [
-            'A' => 20, 'B' => 26, 'C' => 14, 'D' => 18,
-            'E' => 14, 'F' => 12, 'G' => 12, 'H' => 18,
-            'I' => 12, 'J' => 20, 'K' => 22,
+            'A' => 20, 'B' => 26, 'C' => 14,
+            'D' => 14, 'E' => 12, 'F' => 12, 'G' => 18,
+            'H' => 14, 'I' => 20, 'J' => 22,
         ];
     }
 
@@ -398,7 +395,7 @@ private function translatePaymentMethod(?string $method): string
                 $lastRow = $sheet->getHighestRow();
 
                 // Header
-                $sheet->getStyle('A1:K1')->applyFromArray([
+                $sheet->getStyle('A1:J1')->applyFromArray([
                     'font'      => ['bold' => true, 'color' => ['rgb' => self::WHITE], 'size' => 9],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
@@ -416,19 +413,19 @@ private function translatePaymentMethod(?string $method): string
                         'faild' => self::RED_BG,
                         default => ($i % 2 === 0) ? self::LIGHT : 'FFFFFF',
                     };
-                    $sheet->getStyle("A{$row}:K{$row}")->applyFromArray([
+                    $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                         'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
                     ]);
                     // Saldo column G
-                    $sheet->getStyle("E{$row}:G{$row}")->getAlignment()
+                    $sheet->getStyle("D{$row}:F{$row}")->getAlignment()
                           ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                     $sheet->getRowDimension($row)->setRowHeight(18);
                 }
 
                 // Outer border
-                $sheet->getStyle("A1:K{$lastRow}")->applyFromArray([
+                $sheet->getStyle("A1:J{$lastRow}")->applyFromArray([
                     'borders' => ['outline' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['rgb' => self::PURPLE]]],
                 ]);
 
