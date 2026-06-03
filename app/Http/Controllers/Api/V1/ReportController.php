@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\v1;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Exports\ExceptionReportExport;
 use App\Exports\FinancialReportExport;
