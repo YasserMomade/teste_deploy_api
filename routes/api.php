@@ -10,15 +10,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\ClientControler;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\CategoryController;
-use App\Http\Controllers\api\v1\ObservationController;
+use App\Http\Controllers\Api\V1\ObservationController;
 use App\Http\Controllers\Api\V1\PriceController;
 use App\Http\Controllers\Api\V1\InvoiceController;
 use App\Http\Controllers\Api\V1\ReportController;
-use App\Http\Controllers\api\v1\StoreController;
-use App\Http\Controllers\api\v1\StatusController;
-use App\Http\Controllers\api\v1\CostumerController;
-use App\Http\Controllers\api\v1\CostumerFileController;
-use App\Http\Controllers\api\v1\OrdersRequestController;
+use App\Http\Controllers\Api\V1\StoreController;
+use App\Http\Controllers\Api\V1\StatusController;
+use App\Http\Controllers\Api\V1\CostumerController;
+use App\Http\Controllers\Api\V1\CostumerFileController;
+use App\Http\Controllers\Api\V1\OrdersRequestController;
 use App\Http\Controllers\Api\V1\FileController;
 
 
