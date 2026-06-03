@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\ClientService;
 use App\Services\CostumerService;
+use App\Services\WhatsAppService;
 use App\Services\OrderService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Client as ClientRequest;
@@ -21,11 +22,12 @@ class ClientControler extends Controller
 
     protected $clientService;
 
-    public function __construct(ClientService $clientService, CostumerService $costumerService, OrderService $orderService)
+    public function __construct(ClientService $clientService, CostumerService $costumerService, OrderService $orderService, WhatsAppService $whatsAppService)
     {
         $this->clientService = $clientService;
         $this->costumerService = $costumerService;
         $this->orderService = $orderService;
+        $this->whatsAppService = $whatsAppService;
     }
     public function index(Request $request): JsonResponse
     {
@@ -63,74 +65,141 @@ class ClientControler extends Controller
         }
     }
 
-    public function update(UpdateClient $request, int $id): JsonResponse
-    {
-        try {
+public function update(UpdateClient $request, int $id): JsonResponse
+{
+    try {
+        $data = $request->validated();
 
-            $data = $request->validated();
+        $client = $this->clientService->getClientById($id);
 
-            $client = $this->clientService->getClientById($id);
+        if (!$client) {
+            return $this->notFound();
+        }
 
-            if (!$client) {
-                return $this->notFound();
+        $responseData = [];
+        $shouldSyncAndNotify = false;
+        $ordersToNotify = [];
+
+        DB::transaction(function () use (
+            $data,
+            $client,
+            &$responseData,
+            &$shouldSyncAndNotify,
+            &$ordersToNotify
+        ) {
+
+            $clientData = [
+                "phone" => $data["phone"] ?? null,
+                "email" => $data["email"] ?? null,
+            ];
+
+            if (!empty($data["name"]) && !empty($data["lastname"])) {
+                $clientData = array_merge($clientData, [
+                    "name"     => $data["name"],
+                    "lastname" => $data["lastname"],
+                ]);
             }
 
-            DB::transaction(function () use ($data, $client, &$responseData) {
-                $clientData = [
-                    "phone" => $data["phone"] ?? null,
-                    "email" => $data["email"] ?? null,
-                ];
+            $clientUpdated = $this->clientService->updateClient($client, $clientData);
+            $responseData['client'] = $clientUpdated;
 
-                if (!empty($data["name"]) && !empty($data["lastname"])) {
-                    $clientData = array_merge($clientData, [
-                        "name"     => $data["name"],
-                        "lastname" => $data["lastname"],
+            /**
+             * Caso exista mapa de ficheiros -> vai sincronizar
+             */
+            if (!empty($data['file_order_map'])) {
+
+                $shouldSyncAndNotify = true;
+
+                foreach ($data['file_order_map'] as $fileCostumerId => $orderId) {
+
+                    $fileCostumer = \App\Models\FileCostumer::find($fileCostumerId);
+                    if (!$fileCostumer) continue;
+
+                    \App\Models\File::create([
+                        'document_type' => $fileCostumer->document_type,
+                        'url'           => $fileCostumer->url,
+                        'order_id'      => $orderId,
+                        'responsible_id' => auth()->id(),
                     ]);
+
+                    $fileCostumer->delete();
+
+                    $ordersToNotify[] = $orderId;
                 }
+            }
 
-                $clientupt = $this->clientService->updateClient($client, $clientData);
-                $responseData['client'] = $clientupt;
+            /**
+             * Caso exista costumer + orders selecionadas
+             */
+            if (!empty($data['id_costumer']) && !empty($data['id_selectedOrder'])) {
 
-                if (!empty($data['id_costumer']) && !empty($data['id_selectedOrder'])) {
-                    if (!empty($data['file_order_map'])) {
-                        foreach ($data['file_order_map'] as $fileCostumerId => $orderId) {
-                            $fileCostumer = \App\Models\FileCostumer::find($fileCostumerId);
-                            if (!$fileCostumer) continue;
+                $shouldSyncAndNotify = true;
 
-                            \App\Models\File::create([
-                                'document_type' => $fileCostumer->document_type,
-                                'url'           => $fileCostumer->url,
-                                'order_id'      => $orderId,
-                                'responsible_id' => auth()->id(), 
-                            ]);
+                $this->costumerService->deleteCostumer($data['id_costumer']);
 
-                            $fileCostumer->delete();
-                        }
+                $this->orderService->updateMany(
+                    (array) $data['id_selectedOrder'],
+                    ["sync" => true]
+                );
+
+                $ordersToNotify = array_merge(
+                    $ordersToNotify,
+                    (array) $data['id_selectedOrder']
+                );
+
+                $responseData['costumer_deleted'] = true;
+                $responseData['orders_updated'] = true;
+            }
+        });
+
+        /**
+         * ENVIO WHATSAPP SÓ SE HOUVER SYNC REAL
+         */
+        if ($shouldSyncAndNotify && !empty($ordersToNotify)) {
+
+            foreach (array_unique($ordersToNotify) as $orderId) {
+
+                try {
+                    $order = $this->orderService->getOrderById($orderId);
+
+                    if (!$order || !$order->client) continue;
+
+                    $phone = preg_replace('/\D/', '', $order->client->phone);
+
+                    if (!str_starts_with($phone, '258')) {
+                        $phone = '258' . $phone;
                     }
 
-                    $costumerdelete = $this->costumerService
-                        ->deleteCostumer($data['id_costumer']);
+                    // $imageUrl = isset($order->file[0])
+                    //     ? asset('storage/' . $order->file[0]->url)
+                    //     : null;
 
-                    $orderupt = $this->orderService->updateMany(
-                        (array) $data['id_selectedOrder'],
-                        ["sync" => true]
+                    $trackingLink = 'http://localhost:5173/landingPage';
+
+                    $this->whatsAppService->sendTrackingMessage(
+                        $phone,
+                        // $imageUrl,
+                        $trackingLink,
+                        $order->tracking,
+                        $order->client->name
                     );
 
-                    $responseData['costumer_deleted'] = $costumerdelete;
-                    $responseData['orders_updated']   = $orderupt;
+                } catch (\Exception $e) {
+                    return $this->error($e->getMessage());
                 }
-});
-
-            return $this->success(
-                $responseData ?? null,
-                'Successfully'
-            );
-
-        } catch (\Exception $e) {
-
-            return $this->error($e->getMessage());
+            }
         }
+
+        return $this->success(
+            $responseData ?? null,
+            'Successfully'
+        );
+
+    } catch (\Exception $e) {
+        return $this->error($e->getMessage());
     }
+}
+
     public function destroy(int $id): JsonResponse
     {
         try {
