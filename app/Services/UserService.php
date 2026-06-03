@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 
 class UserService
 {
+    public function __construct(private readonly EmailService $emailService) {}
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return User::query()
@@ -35,7 +37,8 @@ class UserService
 
     public function create(array $data): User
     {
-        $role = RoleEnum::from($data['role']);
+        $role     = RoleEnum::from($data['role']);
+        $password = $this->generateSimplePassword();
 
         $user = User::create([
             'user_code'  => $this->generateUserCode($role),
@@ -44,17 +47,28 @@ class UserService
             'lastname'   => $data['lastname'],
             'phone'      => $data['phone'],
             'email'      => $data['email'],
-            'password'   => Hash::make($data['password']),
+            'password'   => Hash::make($password),
             'counter_id' => $data['counter_id'] ?? null,
         ]);
 
-        return $user->load('counter.country');
+        $user->load('counter.country');
+
+        try {
+            $this->emailService->sendWelcomeEmail(
+                $user->email,
+                $user->name . ' ' . $user->lastname,
+                $password
+            );
+        } catch (\Exception $e) {
+            \Log::warning('Falha ao enviar email de boas-vindas para ' . $user->email . ': ' . $e->getMessage());
+        }
+
+        return $user;
     }
 
     public function update(User $user, array $data): User
     {
         $updateData = [];
-
         foreach (['name', 'lastname', 'phone', 'email', 'role', 'counter_id'] as $field) {
             if (array_key_exists($field, $data)) {
                 $updateData[$field] = $data[$field];
@@ -70,7 +84,6 @@ class UserService
         }
 
         $user->update($updateData);
-
         return $user->fresh(['counter.country']);
     }
 
@@ -79,29 +92,35 @@ class UserService
         if ($user->id === $authUser->id) {
             throw new \DomainException('You cannot delete your own account.');
         }
-
         $user->tokens()->delete();
-        $user->delete(); 
+        $user->delete();
     }
 
     public function resetPassword(User $user, string $newPassword): void
     {
         $user->update(['password' => Hash::make($newPassword)]);
-
         $user->tokens()->delete();
+    }
+
+    private function generateSimplePassword(): string
+    {
+        $words = ['Portador', 'Lisboa', 'Dropp', 'Gestor', 'Admin'];
+        $word  = $words[array_rand($words)];
+        $num   = rand(100, 999);
+        return $word . '@' . $num;
     }
 
     private function generateUserCode(RoleEnum $role): string
     {
         $prefix = match($role) {
-            RoleEnum::Admin    => 'ADM',
-            RoleEnum::Manager  => 'MGR',
+            RoleEnum::Admin   => 'ADM',
+            RoleEnum::Manager => 'MGR',
         };
 
         do {
             $code = $prefix . '-' . strtoupper(Str::random(6));
-        } while (User::where('user_code', $code)->exists()); 
-        
+        } while (User::where('user_code', $code)->exists());
+
         return $code;
     }
 }
