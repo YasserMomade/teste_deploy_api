@@ -32,6 +32,8 @@ class UpdateClient extends FormRequest
             'id_selectedOrder.*' => ['integer'],
             'file_order_map'   => ['nullable', 'array'],
             'file_order_map.*' => ['integer', 'exists:orders,id'],
+            'order_images' => ['nullable', 'array'],
+            'order_images.*' => ['image', 'max:5120'],
         ];
     }
 }
