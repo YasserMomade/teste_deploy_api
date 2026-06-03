@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\CostumerController;
 use App\Http\Controllers\Api\V1\CostumerFileController;
 use App\Http\Controllers\Api\V1\OrdersRequestController;
 use App\Http\Controllers\Api\V1\FileController;
+use App\Http\Controllers\Api\V1\WhatsAppController;
 
 
 
@@ -53,6 +54,8 @@ Route::prefix('v1')->group(function () {
         ->name('stripe.webhook')
         ->withoutMiddleware('throttle');
     Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
+
+        Route::post('/order-recivied', [WhatsAppController::class, 'orderRecivied']);
 
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
