@@ -31,12 +31,27 @@ class WhatsAppController extends Controller
         $trackingUrl  = 'http://localhost:5173/landingPage';
         $imageUrl     = asset('images/encomenda.jpg');
 
-        $this->whatsappService->sendOrderReceived( 
+        $this->whatsappService->sendPaymentLink( 
             phone: $phone,
             name: $name,
             trackingCode: $trackingCode,
             trackingUrl: $trackingUrl,
             imageUrl: $imageUrl,
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function paymentDone(): JsonResponse
+    {
+        $phone = '258843799864';
+        $clientName = 'Ian';
+        $pick_up_code = 'fdfdfdfdfd';
+
+        $this->whatsappService->paymentConfirm( 
+            phone: $phone,
+            clientName: $clientName,
+            pick_up_code: $pick_up_code
         );
 
         return response()->json(['ok' => true]);

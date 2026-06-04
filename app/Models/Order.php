@@ -16,6 +16,7 @@ use HasFactory;
         'client_id',
         'description',
         'tracking',
+        'pick_up_code',
         'reception_date',
         'weight',
         'declared_weight',

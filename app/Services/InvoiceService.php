@@ -7,9 +7,14 @@ use Stripe\Price;
 use Stripe\PaymentLink;
 use Stripe\Stripe;
 use Stripe\Webhook;
+use App\Services\WhatsAppService;
 
 class InvoiceService
 {
+    public function __construct(
+        private WhatsAppService $whatsAppService
+    ) {}
+
     public function createInvoice(array $data)
     {
         return Invoice::create($data);
@@ -134,12 +139,28 @@ class InvoiceService
         $link = \Stripe\PaymentLink::retrieve($paymentLinkId);
 
 
-        $invoice = Invoice::where('stripe_payment_link', $link->url)->first();
+        // $invoice = Invoice::where('stripe_payment_link', $link->url)->first();
+        $invoice = Invoice::with(['order.client'])
+                    ->where('stripe_payment_link', $link->url)
+                    ->first();
 
         if (!$invoice) {
             \Log::error('Stripe webhook: fatura não encontrada para payment_link ' . $paymentLinkId);
             return;
         }
+
+        $client = $invoice->order->client;
+        $order = $invoice->order;
+
+        $phone = $client->phone;
+        $clientName = $client->name;
+        $pick_up_code = $order->pick_up_code;
+
+        $this->whatsAppService->paymentConfirm(
+            $phone,
+            $clientName,
+            $pick_up_code
+        );
 
         $invoice->update([
             'payment_status' => 'paid',
