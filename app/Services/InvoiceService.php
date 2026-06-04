@@ -21,7 +21,7 @@ class InvoiceService
     }
     public function getAllInvoice()
     {
-        return Invoice::with('orders')->get();
+        return Invoice::with('orders.client')->get();
     }
     public function getInvoiceById(string $id)
     {
