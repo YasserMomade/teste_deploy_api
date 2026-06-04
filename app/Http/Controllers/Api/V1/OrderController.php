@@ -8,6 +8,8 @@ use App\Services\OrderService;
 use App\Services\InvoiceService;
 use App\Services\StatusService;
 use App\Services\ClientService;
+use App\Services\WhatsAppService;
+
 use App\Traits\ApiResponse;
 use App\Http\Requests\Order\StoreOrder;
 use App\Http\Controllers\Controller;
@@ -20,12 +22,14 @@ class OrderController extends Controller
     protected $orderService;
     protected $invoiceService;
 
-    public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService, ClientService $clientService)
+    public function __construct(OrderService $orderService, InvoiceService $invoiceService, StatusService $statusService, ClientService $clientService, WhatsAppService $whatsAppService)
     {
         $this->orderService = $orderService;
         $this->invoiceService = $invoiceService;
         $this->statusService = $statusService;
         $this->clientService = $clientService;
+        $this->whatsAppService = $whatsAppService;
+
     }
 
 
@@ -73,14 +77,16 @@ class OrderController extends Controller
                 $clientId = $data['client_id'] ?? null;
             }
 
-            //Trackign
+            //codes
            $tracking = 'TRK' . strtoupper(bin2hex(random_bytes(5)));
+           $pick_up_code = 'PD' . strtoupper(bin2hex(random_bytes(5)));
 
             // order
            $orderData = [
                 "client_id" => $clientId,
                 "description" => $data['description'],
                 "tracking" => $tracking,
+                "pick_up_code" => $pick_up_code,
                 "reception_date" => $data['reception_date'],
                 "weight" => $data['weight'],
                 "declared_weight" => $data['declared_weight'],
@@ -188,15 +194,22 @@ class OrderController extends Controller
             $order = $this->orderService->updateOrder($id, $orderData);
 
             //Invoice
-            $weight = $order->weight;
-            $price = $order->category->prices->first()?->amount ?? 0;
-            $amountToPay = $weight * $price;
-
-            $invoiceData = [
-                "amountTo_pay" => $amountToPay
-            ];
             $invoice_id = $order->invoice_id;
-            $invoice = $this->invoiceService->updateInvoice($invoice_id, $invoiceData);
+
+            $invoice = $this->invoiceService->getInvoiceById($invoice_id);
+
+            $hasPaymentLink = !empty($invoice->stripe_payment_link);
+
+            if (!$hasPaymentLink) {
+                $amountToPay = $order->weight *
+                    ($order->category->prices->first()?->amount ?? 0);
+
+                $invoice = $this->invoiceService->updateInvoice(
+                    $invoice_id,
+                    ['amountTo_pay' => $amountToPay]
+                );
+            }
+
 
             //status
             $responsible_id = $data['responsible_id']; //responsavel pela atualização
@@ -207,6 +220,29 @@ class OrderController extends Controller
             ];
             $status = $this->statusService->createStatus($statusData);
 
+            // Payment Link
+            if ($data['status'] === "pronto_levantamento") {
+                $existing = $this->invoiceService->getInvoiceById($order->invoice_id);
+
+                if ($existing->stripe_payment_link) {
+                    return $this->success($existing, 'Link de pagamento já existente.');
+                }
+
+                $invoice = $this->invoiceService->generatePaymentLink($order->invoice_id);
+
+                $order->load('client');
+
+                $phone = $order->client->phone;
+                $clientName = $order->client->name;
+                $payment_link = $invoice->stripe_payment_link;
+
+
+                $this->whatsAppService->sendPaymentLink(
+                        $phone,
+                        $clientName,
+                        $payment_link
+                    );
+            }
 
             return $this->created([
                 'order' => $order,

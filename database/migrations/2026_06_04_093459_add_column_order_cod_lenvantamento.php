@@ -11,15 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('observations', function (Blueprint $table) {
-            $table->foreignId('user_id')->constraint();
+        Schema::table('orders', function (Blueprint $table) {
+
+            $table->string('pick_up_code')->nullable()->after('tracking');
+
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::table('observations', function (Blueprint $table) {
-            $table->dropColumn('user_id');
+        Schema::table('orders', function (Blueprint $table) {
+            $table->dropColumn('pick_up_code');
         });
     }
 };

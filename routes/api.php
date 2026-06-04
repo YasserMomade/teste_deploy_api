@@ -56,6 +56,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
 
         Route::post('/order-recivied', [WhatsAppController::class, 'orderRecivied']);
+        Route::post('/payment-done', [WhatsAppController::class, 'paymentDone']);
 
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');

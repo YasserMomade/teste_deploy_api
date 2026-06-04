@@ -9,6 +9,8 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\InvoiceService;
 use App\Http\Requests\Invoice\StoreInvoice;
+use App\Services\WhatsAppService;
+
 
 
 class InvoiceController extends Controller
@@ -17,9 +19,10 @@ class InvoiceController extends Controller
 
     protected $invoiceService;
 
-    public function __construct(InvoiceService $invoiceService)
+    public function __construct(InvoiceService $invoiceService, WhatsAppService $whatsAppService)
     {
         $this->invoiceService = $invoiceService;
+        $this->whatsAppService = $whatsAppService;
     }
 
     /**
@@ -132,5 +135,9 @@ class InvoiceController extends Controller
             \Log::error('Stripe webhook erro: ' . $e->getMessage());
             return $this->error($e->getMessage());
         }
+    }
+
+    public function paymentCallBack() {
+        
     }
 }
