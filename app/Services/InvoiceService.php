@@ -21,7 +21,7 @@ class InvoiceService
     }
     public function getAllInvoice()
     {
-        return Invoice::with('orders')->get();
+        return Invoice::with('orders.client')->get();
     }
     public function getInvoiceById(string $id)
     {
@@ -59,7 +59,7 @@ class InvoiceService
                 'price' => $price->id,
                 'quantity' => 1,
             ]],
-            
+
             'payment_method_types' => ['card'],
         ]);
 
@@ -111,12 +111,29 @@ class InvoiceService
             return;
         }
 
-        $invoice = Invoice::where('stripe_price_id', $priceId)->first();
+        $invoice = Invoice::with('orders.client')->where('stripe_price_id', $priceId)
+            ->first();
+
+            \Log::info('Facturaaaaa: ' .$invoice);
 
         if (!$invoice) {
             \Log::error('Stripe webhook: fatura não encontrada para price_id ' . $priceId);
             return;
         }
+
+        $order = $invoice->orders->first();
+        $client = $order->client;
+
+        $phone = $client->phone;
+        $clientName = $client->name;
+        $pick_up_code = $order->pick_up_code;
+
+        $this->whatsAppService->paymentConfirm(
+            $phone,
+            $clientName,
+            $pick_up_code
+        );
+
 
         $invoice->update([
             'payment_status' => 'paid',
@@ -141,16 +158,16 @@ class InvoiceService
 
         // $invoice = Invoice::where('stripe_payment_link', $link->url)->first();
         $invoice = Invoice::with(['order.client'])
-                    ->where('stripe_payment_link', $link->url)
-                    ->first();
+            ->where('stripe_payment_link', $link->url)
+            ->first();
 
         if (!$invoice) {
             \Log::error('Stripe webhook: fatura não encontrada para payment_link ' . $paymentLinkId);
             return;
         }
 
-        $client = $invoice->order->client;
-        $order = $invoice->order;
+        $client = $invoice->orders->client;
+        $order = $invoice->orders;
 
         $phone = $client->phone;
         $clientName = $client->name;
