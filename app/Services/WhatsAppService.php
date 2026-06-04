@@ -40,7 +40,7 @@ class WhatsAppService
                                 [
                                     'type' => 'image',
                                     'image' => [
-                                        'link' => 'https://emprego.mmo.co.mz/wp-content/uploads/2015/08/Portador-Di%C3%A1rio-logo-250x154.jpg.webp'
+                                        'link' => 'https://www.portadordiario.co.mz/assets/img/services/services-national.png'
                                     ]
                                 ]
                             ]

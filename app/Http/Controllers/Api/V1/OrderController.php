@@ -221,27 +221,25 @@ class OrderController extends Controller
             $status = $this->statusService->createStatus($statusData);
 
             // Payment Link
-            if ($data['status'] === "pronto_levantamento") {
+          if ($data['status'] === "pronto_levantamento") {
                 $existing = $this->invoiceService->getInvoiceById($order->invoice_id);
-
-                if ($existing->stripe_payment_link) {
-                    return $this->success($existing, 'Link de pagamento já existente.');
-                }
-
-                $invoice = $this->invoiceService->generatePaymentLink($order->invoice_id);
-
+                
                 $order->load('client');
-
                 $phone = $order->client->phone;
                 $clientName = $order->client->name;
-                $payment_link = $invoice->stripe_payment_link;
 
+                if ($existing->stripe_payment_link) {
+                    $payment_link = $existing->stripe_payment_link;
+                } else {
+                    $invoice = $this->invoiceService->generatePaymentLink($order->invoice_id);
+                    $payment_link = $invoice->stripe_payment_link;
+                }
 
                 $this->whatsAppService->sendPaymentLink(
-                        $phone,
-                        $clientName,
-                        $payment_link
-                    );
+                    $phone,
+                    $clientName,
+                    $payment_link
+                );
             }
 
             return $this->created([
