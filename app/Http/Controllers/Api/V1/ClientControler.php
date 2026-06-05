@@ -170,15 +170,17 @@ public function update(UpdateClient $request, int $id): JsonResponse
                         $phone = '258' . $phone;
                     }
 
-                    // $imageUrl = isset($order->file[0])
-                    //     ? asset('storage/' . $order->file[0]->url)
-                    //     : null;
+                    $imageUrl = $order->file[0]->url;
+
+                    if (!$imageUrl) {
+                        $imageUrl = 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
+                    } 
 
                     $trackingLink = 'http://localhost:5173/landingPage';
 
                     $this->whatsAppService->sendTrackingMessage(
                         $phone,
-                        // $imageUrl,
+                        $imageUrl,
                         $trackingLink,
                         $order->tracking,
                         $order->client->name
