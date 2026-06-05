@@ -9,6 +9,8 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\FIleService;
 use App\Http\Requests\File\StoreFile;
+use Cloudinary\Cloudinary;
+use Cloudinary\Configuration\Configuration;
 
 class FileController extends Controller
 {
@@ -19,43 +21,42 @@ class FileController extends Controller
     public function __construct(FIleService $fileService)
     {
         $this->fileService = $fileService;
-    } 
+    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreFile $request)
     {
         try {
-            $file = $request->file('file');
+            $cloudinary = new Cloudinary(env('CLOUDINARY_URL'));
 
-            $path = $file->store('orders/documents', 'public');
+            $uploadedFile = $request->file('file');
 
-            $file = $this->fileService->createFile(
+            $result = $cloudinary->uploadApi()->upload(
+                $uploadedFile->getRealPath(),
                 [
-                'document_type' => $request->document_type,
-                'url' => $path,
-                'order_id' => $request->order_id,
-                'responsible_id' => $request->responsible_id,
+                    'folder' => 'portador_diario/orders',
+                    'resource_type' => 'auto',
                 ]
             );
+
+            $file = $this->fileService->createFile([
+                'document_type' => $request->document_type,
+                'url' => $result['secure_url'],
+                'order_id' => $request->order_id,
+                'responsible_id' => $request->responsible_id,
+            ]);
+
             return $this->created($file);
+
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        
         try {
             $this->fileService->deleteFile($id);
             return $this->success(null, 'file deleted successfully');
-
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
