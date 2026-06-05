@@ -227,6 +227,11 @@ class OrderController extends Controller
                 $order->load('client');
                 $phone = $order->client->phone;
                 $clientName = $order->client->name;
+                $imageUrl = $order->file[0]->url;
+
+                if (!$imageUrl) {
+                    $imageUrl = 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
+                }
 
                 if ($existing->stripe_payment_link) {
                     $payment_link = $existing->stripe_payment_link;
@@ -237,6 +242,7 @@ class OrderController extends Controller
 
                 $this->whatsAppService->sendPaymentLink(
                     $phone,
+                    $imageUrl,
                     $clientName,
                     $payment_link
                 );

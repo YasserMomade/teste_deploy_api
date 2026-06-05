@@ -18,7 +18,7 @@ class WhatsAppService
 
     public function sendTrackingMessage(
             string $phone,
-            // string $imageUrl,
+            string $imageUrl,
             string $trackingLink,
             string $trackingToken,
             string $clientName
@@ -40,7 +40,7 @@ class WhatsAppService
                                 [
                                     'type' => 'image',
                                     'image' => [
-                                        'link' => 'https://www.portadordiario.co.mz/assets/img/services/services-national.png'
+                                        'link' => $imageUrl
                                     ]
                                 ]
                             ]
@@ -91,6 +91,7 @@ class WhatsAppService
 
     public function sendPaymentLink(
         string $phone,
+        string $imageUrl,
         string $clientName,
         string $payment_link
     ) {
@@ -113,7 +114,7 @@ class WhatsAppService
                             [
                                 'type' => 'image',
                                 'image' => [
-                                    'link' => 'https://www.portadordiario.co.mz/assets/img/services/services-national.png'
+                                    'link' => $imageUrl
                                 ]
                             ]
                         ]
