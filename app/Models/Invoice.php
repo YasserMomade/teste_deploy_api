@@ -14,7 +14,16 @@ class Invoice extends Model
       'payment_method',
       'stripe_payment_link',
       'stripe_price_id',
+      'paid_at',
+      'stripe_payment_intent',
+      'stripe_receipt_url',
    ];
+
+   protected $casts = [
+    'paid_at'    => 'datetime',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+];
 
    public function orders()
    {

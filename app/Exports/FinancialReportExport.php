@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
@@ -42,25 +43,25 @@ class FinancialSummarySheet implements FromArray, WithTitle, WithColumnWidths, W
     ) {}
 
     private function translateStatus(?string $status): string
-{
-    return match (strtolower($status ?? '')) {
-        'paid' => 'Pago',
-        'pendent' => 'Pendente',
-        'failed' => 'Falhado',
-        default => $status ? ucfirst($status) : '-',
-    };
-}
+    {
+        return match (strtolower($status ?? '')) {
+            'paid' => 'Pago',
+            'pendent' => 'Pendente',
+            'failed' => 'Falhado',
+            default => $status ? ucfirst($status) : '-',
+        };
+    }
 
-private function translatePaymentMethod(?string $method): string
-{
-    return match (strtolower($method ?? '')) {
-        'cash' => 'Dinheiro',
-        'card' => 'Cartão',
-        'undefined' => 'Sem pagamentos',
-        null => '',
-        default => ucfirst($method),
-    };
-}
+    private function translatePaymentMethod(?string $method): string
+    {
+        return match (strtolower($method ?? '')) {
+            'cash' => 'Dinheiro',
+            'card' => 'Cartão',
+            'undefined' => 'Sem pagamentos',
+            null => '',
+            default => ucfirst($method),
+        };
+    }
 
     public function array(): array
     {
@@ -79,7 +80,7 @@ private function translatePaymentMethod(?string $method): string
         $rows[] = ['', '', '', ''];
         $rowNum++;
 
-        
+
         $this->sectionHeaderRows[] = $rowNum;
         $rows[] = ['RESUMO FINANCEIRO', '', '', ''];
         $rowNum++;
@@ -136,33 +137,33 @@ private function translatePaymentMethod(?string $method): string
         }
 
         // By payment method
-       if (! empty($this->byPaymentMethod)) {
-    $this->sectionHeaderRows[] = $rowNum;
-    $rows[] = ['POR MÉTODO DE PAGAMENTO', '', '', ''];
-    $rowNum++;
+        if (! empty($this->byPaymentMethod)) {
+            $this->sectionHeaderRows[] = $rowNum;
+            $rows[] = ['POR MÉTODO DE PAGAMENTO', '', '', ''];
+            $rowNum++;
 
-    $this->tableHeaderRows[] = $rowNum;
-    $rows[] = ['Método', 'Nº Encomendas', 'Total Cobrado', ''];
-    $rowNum++;
+            $this->tableHeaderRows[] = $rowNum;
+            $rows[] = ['Método', 'Nº Encomendas', 'Total Cobrado', ''];
+            $rowNum++;
 
-    foreach ($this->byPaymentMethod as $r) {
+            foreach ($this->byPaymentMethod as $r) {
 
-        $method = strtolower($r['method'] ?? '');
+                $method = strtolower($r['method'] ?? '');
 
-        // Ignora métodos undefined, null ou vazios
-        if (in_array($method, ['undefined', '', 'null'])) {
-            continue;
-        }
+                // Ignora métodos undefined, null ou vazios
+                if (in_array($method, ['undefined', '', 'null'])) {
+                    continue;
+                }
 
-        $rows[] = [
-            $this->translatePaymentMethod($r['method'] ?? null),
-            $r['total_orders'],
-            number_format($r['total_collected'], 2),
-            ''
-        ];
+                $rows[] = [
+                    $this->translatePaymentMethod($r['method'] ?? null),
+                    $r['total_orders'],
+                    number_format($r['total_collected'], 2),
+                    ''
+                ];
 
-        $rowNum++;
-    }
+                $rowNum++;
+            }
 
             $rows[] = ['', '', '', ''];
             $rowNum++;
@@ -196,7 +197,10 @@ private function translatePaymentMethod(?string $method): string
         return $rows;
     }
 
-    public function title(): string { return 'Resumo Financeiro'; }
+    public function title(): string
+    {
+        return 'Resumo Financeiro';
+    }
 
     public function columnWidths(): array
     {
@@ -250,7 +254,7 @@ private function translatePaymentMethod(?string $method): string
                     $sheet->getRowDimension($row)->setRowHeight(20);
                 }
 
-                
+
                 foreach ($this->kpiRows as $i => $row) {
                     $bg = ($i % 2 === 0) ? self::LIGHT : 'FFFFFF';
                     $sheet->getStyle("A{$row}:D{$row}")->applyFromArray([
@@ -258,7 +262,7 @@ private function translatePaymentMethod(?string $method): string
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                     ]);
                     $label = $sheet->getCell("A{$row}")->getValue();
-                    $colour = match($label) {
+                    $colour = match ($label) {
                         'Total Cobrado' => self::GREEN,
                         'Total em Dívida' => self::RED,
                         'Encomendas Pagas' => self::GREEN,
@@ -318,27 +322,27 @@ class FinancialDetailSheet implements FromCollection, WithTitle, WithHeadings, W
     private const RED_BG = 'FFEBEE';
 
     private function translateStatus(?string $status): string
-{
-    return match (strtolower($status ?? '')) {
-        'paid' => 'Pago',
-        'pendent' => 'Pendente',
-        'failed' => 'Falhado',
-        default => $status ? ucfirst($status) : '-',
-    };
-}
+    {
+        return match (strtolower($status ?? '')) {
+            'paid' => 'Pago',
+            'pendent' => 'Pendente',
+            'failed' => 'Falhado',
+            default => $status ? ucfirst($status) : '-',
+        };
+    }
 
-private function translatePaymentMethod(?string $method): string
-{
-    return match (strtolower($method ?? '')) {
-        'cash' => 'Dinheiro',
-        'mpesa' => 'M-Pesa',
-        'emola' => 'E-Mola',
-        'bank_transfer' => 'Transferência Bancária',
-        'card' => 'Cartão',
-        'undefined', '', null => '',
-        default => ucfirst($method),
-    };
-}
+    private function translatePaymentMethod(?string $method): string
+    {
+        return match (strtolower($method ?? '')) {
+            'cash' => 'Dinheiro',
+            'mpesa' => 'M-Pesa',
+            'emola' => 'E-Mola',
+            'bank_transfer' => 'Transferência Bancária',
+            'card' => 'Cartão',
+            'undefined', '', null => '',
+            default => ucfirst($method),
+        };
+    }
 
     private array $rowStatuses = [];
 
@@ -354,6 +358,7 @@ private function translatePaymentMethod(?string $method): string
                 $order->tracking,
                 trim(($order->client?->name ?? '') . ' ' . ($order->client?->lastname ?? '')) ?: '-',
                 $order->created_at?->format('d/m/Y') ?? '-',
+                $order->invoice?->paid_at ? \Carbon\Carbon::parse($order->invoice->paid_at)->format('d/m/Y H:i') : '-',
                 number_format($order->invoice?->amountTo_pay ?? 0, 2),
                 number_format($order->invoice?->amount_paid ?? 0, 2),
                 number_format(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice?->amount_paid ?? 0), 2),
@@ -370,20 +375,39 @@ private function translatePaymentMethod(?string $method): string
     public function headings(): array
     {
         return [
-            'Tracking', 'Cliente', 'Data',
-            'A Pagar', 'Pago', 'Saldo', 'Estado Pagamento',
-            'Método', 'Referência', 'Responsável',
+            'Tracking',
+            'Cliente',
+            'Data Encomenda',
+            'Data Pagamento',
+            'A Pagar',
+            'Pago',
+            'Saldo',
+            'Estado Pagamento',
+            'Método',
+            'Referência',
+            'Responsável',
         ];
     }
 
-    public function title(): string { return 'Detalhe Financeiro'; }
+    public function title(): string
+    {
+        return 'Detalhe Financeiro';
+    }
 
     public function columnWidths(): array
     {
         return [
-            'A' => 20, 'B' => 26, 'C' => 14,
-            'D' => 14, 'E' => 12, 'F' => 12, 'G' => 18,
-            'H' => 14, 'I' => 20, 'J' => 22,
+            'A' => 20,
+            'B' => 26,
+            'C' => 14,
+            'D' => 18, 
+            'E' => 14,
+            'F' => 12,
+            'G' => 12,
+            'H' => 18,
+            'I' => 14,
+            'J' => 20,
+            'K' => 22,
         ];
     }
 
@@ -395,7 +419,7 @@ private function translatePaymentMethod(?string $method): string
                 $lastRow = $sheet->getHighestRow();
 
                 // Header
-                $sheet->getStyle('A1:J1')->applyFromArray([
+                $sheet->getStyle('A1:K1')->applyFromArray([
                     'font'      => ['bold' => true, 'color' => ['rgb' => self::WHITE], 'size' => 9],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::PURPLE]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
@@ -407,29 +431,27 @@ private function translatePaymentMethod(?string $method): string
                 // Data rows - coloured by payment status
                 foreach ($this->rowStatuses as $i => $status) {
                     $row = $i + 2;
-                    $bg  = match($status) {
+                    $bg  = match ($status) {
                         'paid' => self::GRN_BG,
                         'pendent' => self::AMB_BG,
                         'faild' => self::RED_BG,
                         default => ($i % 2 === 0) ? self::LIGHT : 'FFFFFF',
                     };
-                    $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+                    $sheet->getStyle("A{$row}:K{$row}")->applyFromArray([
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $bg]],
                         'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
                         'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
                     ]);
                     // Saldo column G
-                    $sheet->getStyle("D{$row}:F{$row}")->getAlignment()
-                          ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                    $sheet->getStyle("E{$row}:G{$row}")->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                     $sheet->getRowDimension($row)->setRowHeight(18);
                 }
 
                 // Outer border
-                $sheet->getStyle("A1:J{$lastRow}")->applyFromArray([
+                $sheet->getStyle("A1:K{$lastRow}")->applyFromArray([
                     'borders' => ['outline' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['rgb' => self::PURPLE]]],
                 ]);
-
-               
             },
         ];
     }
