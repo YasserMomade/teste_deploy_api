@@ -1,21 +1,21 @@
 @extends('reports.layout')
 
 @php
-    function translateStatus($status) {
-        return match($status) {
-            'paid' => 'Pago',
-            'pendent' => 'Pendente',
-            default => ucfirst($status ?? 'N/A')
-        };
-    }
+function translateStatus($status) {
+return match($status) {
+'paid' => 'Pago',
+'pendent' => 'Pendente',
+default => ucfirst($status ?? 'N/A')
+};
+}
 
-    function paymentMethod($method) {
-        return match($method) {
-            'cash'  => 'Dinheiro',
-            'card'  => 'Cartão',
-            default => ucfirst($method ?? '-'),
-        };
-    }
+function paymentMethod($method) {
+return match($method) {
+'cash' => 'Dinheiro',
+'card' => 'Cartão',
+default => ucfirst($method ?? '-'),
+};
+}
 
 @endphp
 
@@ -37,7 +37,7 @@
 {{-- SUMMARY BOXES --}}
 <div class="summary-wrap">
     <div class="summary-box">
-        <span class="s-label">Total a Cobrar</span>
+        <span class="s-label">Total Processado</span>
         <span class="s-value">{{ number_format($summary['total_to_pay'], 2) . ' €' }}</span>
     </div>
     <div class="summary-box">
@@ -152,7 +152,8 @@
         <tr>
             <th>Tracking</th>
             <th>Cliente</th>
-            <th>Data</th>
+            <th>Data Encomenda</th>
+            <th>Data Pagamento</th>
             <th>A Pagar</th>
             <th>Pago</th>
             <th>Saldo</th>
@@ -168,6 +169,7 @@
             <td>{{ $order->tracking }}</td>
             <td> {{ ($order['client']['name'] ?? '') . ' ' . ($order['client']['lastname'] ?? '') }}</td>
             <td>{{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') }}</td>
+            <td> {{ $order->invoice?->paid_at ? \Carbon\Carbon::parse($order->invoice->paid_at)->format('d/m/Y H:i') : '-' }}</td>
             <td>{{ number_format($order->invoice?->amountTo_pay ?? 0, 2) . ' €'}}</td>
             <td>{{ ($order->invoice?->amount_paid ?? 0) > 0 ? number_format($order->invoice->amount_paid, 2) . ' €' : '-'}}</td>
             <td>{{ number_format(($order->invoice?->amountTo_pay ?? 0) - ($order->invoice?->amount_paid ?? 0), 2) . ' €' }}</td>
