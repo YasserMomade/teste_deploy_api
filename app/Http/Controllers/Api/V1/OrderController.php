@@ -77,9 +77,10 @@ class OrderController extends Controller
                 $clientId = $data['client_id'] ?? null;
             }
 
-            //codes
+            //
            $tracking = 'TRK' . strtoupper(bin2hex(random_bytes(5)));
            $pick_up_code = 'PD' . strtoupper(bin2hex(random_bytes(5)));
+           $actualDate = now()->addDays(7);
 
             // order
            $orderData = [
@@ -87,7 +88,7 @@ class OrderController extends Controller
                 "description" => $data['description'],
                 "tracking" => $tracking,
                 "pick_up_code" => $pick_up_code,
-                "reception_date" => $data['reception_date'],
+                "reception_date" => $actualDate,
                 "weight" => $data['weight'],
                 "declared_weight" => $data['declared_weight'],
                 "category_id" => $data['category_id'],
