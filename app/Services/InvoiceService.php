@@ -8,6 +8,7 @@ use Stripe\PaymentLink;
 use Stripe\Stripe;
 use Stripe\Webhook;
 use App\Services\WhatsAppService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceService
 {
@@ -15,52 +16,64 @@ class InvoiceService
         private WhatsAppService $whatsAppService
     ) {}
 
-    public function createInvoice(array $data)
+    public function createInvoice(array $data): Invoice
     {
         return Invoice::create($data);
     }
+
     public function getAllInvoice()
     {
         return Invoice::with('orders.client')->get();
     }
-    public function getInvoiceById(string $id)
+
+    public function getInvoiceById(string $id): Invoice
     {
-        return Invoice::findOrFail($id);
+        return Invoice::with('orders.client')->findOrFail($id);
     }
-    public function updateInvoice(string $id, array $data)
+
+    public function updateInvoice(string $id, array $data): Invoice
     {
         $invoice = Invoice::findOrFail($id);
         $invoice->update($data);
         return $invoice;
     }
-    public function deleteInvoice(string $id)
+
+    public function deleteInvoice(string $id): bool
     {
         $invoice = Invoice::findOrFail($id);
         return $invoice->delete();
     }
-    public function generatePaymentLink(string $invoiceId): Invoice
+
+    public function generatePdf(string $id): string
     {
-        $invoice = Invoice::findOrFail($invoiceId);
+        $invoice = Invoice::with('orders.client')->findOrFail($id);
+
+        return Pdf::loadView('pdf.invoice', compact('invoice'))
+            ->setPaper('a4', 'portrait')
+            ->output();
+    }
+
+    public function generatePaymentLink(string $id): Invoice
+    {
+
+        $invoice = Invoice::findOrFail($id);
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $amountInCents = (int) round($invoice->amountTo_pay * 100);
 
         $price = Price::create([
-            'currency' => 'eur',
-            'unit_amount' => $amountInCents,
+            'currency'     => 'eur',
+            'unit_amount'  => $amountInCents,
             'product_data' => [
-                'name' => 'Fatura #' . ($invoice->referencie ?? $invoiceId),
+                'name' => 'Fatura #' . $invoice->referencie,
             ],
         ]);
 
         $paymentLink = PaymentLink::create([
-            'line_items' => [[
-                'price' => $price->id,
-                'quantity' => 1,
-            ]],
-
+            'line_items' => [['price' => $price->id, 'quantity' => 1]],
             'payment_method_types' => ['card'],
+            'customer_creation' => 'always',
         ]);
 
         $invoice->update([
@@ -73,118 +86,142 @@ class InvoiceService
 
     public function handleStripeWebhook(string $payload, string $sigHeader): void
     {
-        $event = Webhook::constructEvent($payload, $sigHeader, config('services.stripe.webhook_secret'));
+        $event = Webhook::constructEvent(
+            $payload,
+            $sigHeader,
+            config('services.stripe.webhook_secret')
+        );
 
         switch ($event->type) {
 
             case 'checkout.session.completed':
-                $session = $event->data->object;
 
                 Stripe::setApiKey(config('services.stripe.secret'));
 
+                $session = $event->data->object;
+
                 try {
-                    // Tenta expandir os line_items para obter o price_id
+
                     $session = \Stripe\Checkout\Session::retrieve([
                         'id' => $session->id,
                         'expand' => ['line_items'],
                     ]);
-                    $this->markInvoiceAsPaid($session);
+
+                    $paymentIntent = \Stripe\PaymentIntent::retrieve(
+                        $session->payment_intent
+                    );
+
+                    $charge = \Stripe\Charge::retrieve(
+                        $paymentIntent->latest_charge
+                    );
+
+                    \Log::info('Receipt URL: ' . ($charge->receipt_url ?? 'Sem Recibooo'));
+
+                    $this->markInvoiceAsPaid(
+                        $session,
+                        $paymentIntent,
+                        $charge
+                    );
                 } catch (\Exception $e) {
-                    // Se falhar, tenta encontrar a fatura pelo URL do payment_link
-                    \Log::warning('Stripe: não foi possível expandir sessão, tentando pelo payment_link: ' . $e->getMessage());
-                    $this->markInvoiceAsPaidByPaymentLink($session->payment_link ?? null);
+
+                    \Log::error(
+                        'Stripe checkout.session.completed erro: ' .
+                            $e->getMessage()
+                    );
+
+                    throw $e;
                 }
+
                 break;
 
             case 'payment_intent.payment_failed':
-                \Log::warning('Stripe: pagamento falhou - ' . $event->data->object->id);
+
+                \Log::warning(
+                    'Stripe: pagamento falhou - ' .
+                        $event->data->object->id
+                );
+
                 break;
         }
     }
-
-    private function markInvoiceAsPaid(object $session): void
-    {
+    private function markInvoiceAsPaid(
+        object $session,
+        object $paymentIntent,
+        object $charge
+    ): void {
         $priceId = $session->line_items->data[0]->price->id ?? null;
 
         if (!$priceId) {
-            \Log::error('Stripe webhook: price_id não encontrado na sessão ' . $session->id);
+
+            \Log::error(
+                'Stripe webhook: price_id não encontrado na sessão ' .
+                    $session->id
+            );
+
             return;
         }
 
-        $invoice = Invoice::with('orders.client')->where('stripe_price_id', $priceId)
+        $invoice = Invoice::with('orders.client')
+            ->where('stripe_price_id', $priceId)
             ->first();
 
-            \Log::info('Facturaaaaa: ' .$invoice);
-
         if (!$invoice) {
-            \Log::error('Stripe webhook: fatura não encontrada para price_id ' . $priceId);
+
+            \Log::error(
+                'Stripe webhook: fatura não encontrada para price_id ' . $priceId
+            );
+
             return;
         }
 
-        $order = $invoice->orders->first();
-        $client = $order->client;
-
-        $phone = $client->phone;
-        $clientName = $client->name;
-        $pick_up_code = $order->pick_up_code;
-
-        $this->whatsAppService->paymentConfirm(
-            $phone,
-            $clientName,
-            $pick_up_code
-        );
-
-
         $invoice->update([
-            'payment_status' => 'paid',
-            'amount_paid' => $invoice->amountTo_pay,
-            'payment_method' => 'card',
+            'stripe_payment_intent' => $paymentIntent->id,
+            'stripe_receipt_url'    => $charge->receipt_url ?? null,
         ]);
 
-        \Log::info('Stripe: fatura #' . $invoice->id . ' marcada como paga.');
+        $this->processPaymentConfirmation($invoice->fresh());
     }
 
-    private function markInvoiceAsPaidByPaymentLink(?string $paymentLinkId): void
+
+    private function processPaymentConfirmation(Invoice $invoice): void
     {
-        if (!$paymentLinkId) {
-            \Log::error('Stripe webhook: payment_link_id em falta.');
+        if ($invoice->payment_status === 'paid') {
+
+            \Log::info(
+                'Stripe: fatura #' .
+                    $invoice->id .
+                    ' já estava paga, ignorando.'
+            );
+
             return;
         }
-
-        Stripe::setApiKey(config('services.stripe.secret'));
-
-        $link = \Stripe\PaymentLink::retrieve($paymentLinkId);
-
-
-        // $invoice = Invoice::where('stripe_payment_link', $link->url)->first();
-        $invoice = Invoice::with(['order.client'])
-            ->where('stripe_payment_link', $link->url)
-            ->first();
-
-        if (!$invoice) {
-            \Log::error('Stripe webhook: fatura não encontrada para payment_link ' . $paymentLinkId);
-            return;
-        }
-
-        $client = $invoice->orders->client;
-        $order = $invoice->orders;
-
-        $phone = $client->phone;
-        $clientName = $client->name;
-        $pick_up_code = $order->pick_up_code;
-
-        $this->whatsAppService->paymentConfirm(
-            $phone,
-            $clientName,
-            $pick_up_code
-        );
 
         $invoice->update([
             'payment_status' => 'paid',
             'amount_paid' => $invoice->amountTo_pay,
             'payment_method' => 'card',
+            'paid_at' => now(),
         ]);
 
-        \Log::info('Stripe: fatura #' . $invoice->id . ' marcada como paga via payment_link.');
+        $order  = $invoice->orders->first();
+        $client = $order?->client;
+
+        if ($client && $order) {
+
+            $receiptUrl = $invoice->stripe_receipt_url;
+
+            $this->whatsAppService->paymentConfirm(
+                $client->phone,
+                $client->name,
+                $order->pick_up_code,
+                $receiptUrl
+            );
+        }
+
+        \Log::info(
+            'Stripe: fatura #' .
+                $invoice->id .
+                ' (ref: ' . $invoice->referencie . ') marcada como paga em ' . now()->toDateTimeString()
+        );
     }
 }

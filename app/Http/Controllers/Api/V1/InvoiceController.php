@@ -2,45 +2,30 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Invoice;
 use Illuminate\Http\Request;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Services\InvoiceService;
 use App\Http\Requests\Invoice\StoreInvoice;
-use App\Services\WhatsAppService;
-
-
 
 class InvoiceController extends Controller
 {
     use ApiResponse;
 
-    protected $invoiceService;
+    public function __construct(
+        private InvoiceService $invoiceService
+    ) {}
 
-    public function __construct(InvoiceService $invoiceService, WhatsAppService $whatsAppService)
-    {
-        $this->invoiceService = $invoiceService;
-        $this->whatsAppService = $whatsAppService;
-    }
-
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         try {
-            $invoice = $this->invoiceService->getAllInvoice();
-            return $this->success($invoice);
+            return $this->success($this->invoiceService->getAllInvoice());
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreInvoice $request)
     {
         try {
@@ -51,23 +36,15 @@ class InvoiceController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(String $id)
+    public function show(string $id)
     {
         try {
-            $invoice = $this->invoiceService->getInvoiceById($id);
-            return $this->success($invoice);
+            return $this->success($this->invoiceService->getInvoiceById($id));
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(StoreInvoice $request, string $id)
     {
         try {
@@ -78,32 +55,26 @@ class InvoiceController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         try {
             $this->invoiceService->deleteInvoice($id);
-            return $this->success(null, 'Invoice deleted successfully');
+            return $this->success(null, 'Fatura eliminada com sucesso.');
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
 
-
     public function generatePaymentLink(string $id): JsonResponse
     {
-
         try {
-            $existing = $this->invoiceService->getInvoiceById($id);
+            $invoice = $this->invoiceService->getInvoiceById($id);
 
-            if ($existing->stripe_payment_link) {
-                return $this->success($existing, 'Link de pagamento já existente.');
+            if ($invoice->stripe_payment_link) {
+                return $this->success($invoice, 'Link de pagamento já existente.');
             }
 
             $invoice = $this->invoiceService->generatePaymentLink($id);
-
             return $this->success($invoice, 'Link de pagamento gerado com sucesso.');
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
@@ -112,14 +83,8 @@ class InvoiceController extends Controller
 
     public function handleWebhook(Request $request): JsonResponse
     {
-        $payload   = $request->getContent();
+        $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
-
-        \Log::info('Webhook debug', [
-            'sig_header' => $sigHeader,
-            'secret'     => config('services.stripe.webhook_secret'),
-            'payload_length' => strlen($payload),
-        ]);
 
         if (!$sigHeader) {
             return $this->error('Assinatura Stripe em falta.', 400);
@@ -137,7 +102,4 @@ class InvoiceController extends Controller
         }
     }
 
-    public function paymentCallBack() {
-        
-    }
 }

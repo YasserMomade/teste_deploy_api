@@ -40,12 +40,12 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
-        Route::apiResource('/costumer', CostumerController::class);
-        Route::post('/customer-request',       [CostumerController::class, 'store']);
-        Route::post('/customer-file',          [CostumerFileController::class, 'store']);
-    
-        Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
-        Route::apiResource('/orders', OrderController::class);
+    Route::apiResource('/costumer', CostumerController::class);
+    Route::post('/customer-request',       [CostumerController::class, 'store']);
+    Route::post('/customer-file',          [CostumerFileController::class, 'store']);
+
+    Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
+    Route::apiResource('/orders', OrderController::class);
 
     Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
     Route::apiResource('/orders', OrderController::class);
@@ -80,7 +80,6 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('stores', StoreController::class);
 
         Route::post('/invoice/{id}/payment-link', [InvoiceController::class, 'generatePaymentLink'])->name('invoice.payment-link');
-
 
 
         Route::prefix('orders/{orderID}/observations')->group(function () {

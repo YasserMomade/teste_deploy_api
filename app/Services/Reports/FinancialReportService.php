@@ -15,9 +15,9 @@ class FinancialReportService
             ->select('orders.*')
             ->with([
                 'client:id,name,lastname',
-                'invoice',
+               'invoice:id,amountTo_pay,amount_paid,payment_status,payment_method,referencie,paid_at,stripe_receipt_url',
                 'responsible:id,name,lastname,user_code',
-            ])
+            ])->orderBy('orders.created_at', 'desc')
             ->get();
         return [
             'summary'            => $this->buildSummary(clone $query),
@@ -110,8 +110,8 @@ class FinancialReportService
             ->groupBy('invoices.payment_method')
             ->get()
             ->map(fn($row) => [
-                'method'          => $row->method,
-                'total_orders'    => (int) $row->total_orders,
+                'method' => $row->method,
+                'total_orders' => (int) $row->total_orders,
                 'total_collected' => round((float) $row->total_collected, 2),
             ])
             ->toArray();
@@ -128,7 +128,7 @@ class FinancialReportService
                 SUM(orders.weight) as total_weight
             ')
             ->groupBy(DB::raw('DATE(orders.created_at)'))
-            ->orderBy('date')
+            ->orderBy('date', 'desc')
             ->get()
             ->map(fn($row) => [
                 'date'          => $row->date,
