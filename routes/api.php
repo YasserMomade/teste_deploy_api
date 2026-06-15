@@ -38,7 +38,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/order-statiscs', [OrderController::class, 'statisc']);
 
-    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);   
 
     Route::apiResource('/costumer', CostumerController::class);
     Route::post('/customer-request',       [CostumerController::class, 'store']);
