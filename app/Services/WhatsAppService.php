@@ -19,7 +19,7 @@ class WhatsAppService
     public function sendTrackingMessage(
             string $phone,
             string $imageUrl,
-            string $trackingLink,
+            string $tracking,
             string $trackingToken,
             string $clientName
         ): array {
@@ -29,7 +29,7 @@ class WhatsAppService
                 'to' => $phone,
                 'type' => 'template',
                 'template' => [
-                    'name' => 'rastreamento', 
+                    'name' => 'tracking',
                     'language' => [
                         'code' => 'en'
                     ],
@@ -54,11 +54,18 @@ class WhatsAppService
                                 ],
                                 [
                                     'type' => 'text',
-                                    'text' => $trackingLink
-                                ],
+                                    'text' => $trackingToken
+                                ]
+                            ]
+                        ],
+                        [
+                            'type' => 'button',
+                            'sub_type' => 'url',
+                            'index' => '0',
+                            'parameters' => [
                                 [
                                     'type' => 'text',
-                                    'text' => $trackingToken
+                                    'text' => $tracking
                                 ]
                             ]
                         ]
