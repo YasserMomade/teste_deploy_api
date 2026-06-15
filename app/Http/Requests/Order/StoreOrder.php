@@ -25,7 +25,7 @@ class StoreOrder extends FormRequest
         return [
             'client_id' => 'nullable|exists:clients,id',
             'description' => 'required|string',
-            'reception_date' => 'required|date',
+            // 'reception_date' => 'required|date',
             'weight' => 'required|numeric',
             'declared_weight' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
