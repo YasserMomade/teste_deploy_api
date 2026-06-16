@@ -165,6 +165,7 @@ public function update(UpdateClient $request, int $id): JsonResponse
                     if (!$order || !$order->client) continue;
 
                     $phone = preg_replace('/\D/', '', $order->client->phone);
+                    $tracking = $order->tracking;
 
                     if (!str_starts_with($phone, '258')) {
                         $phone = '258' . $phone;
@@ -176,12 +177,12 @@ public function update(UpdateClient $request, int $id): JsonResponse
                         $imageUrl = 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
                     } 
 
-                    $trackingLink = 'http://localhost:5173/landingPage';
+                    
 
                     $this->whatsAppService->sendTrackingMessage(
                         $phone,
                         $imageUrl,
-                        $trackingLink,
+                        $tracking,
                         $order->tracking,
                         $order->client->name
                     );

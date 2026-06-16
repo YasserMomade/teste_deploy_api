@@ -36,7 +36,9 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
-    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
+    Route::get('/order-statiscs', [OrderController::class, 'statisc']);
+
+    Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);   
 
     Route::post('/customer-request',       [CostumerController::class, 'store']);
     Route::post('/customer-file',          [CostumerFileController::class, 'store']);
@@ -53,7 +55,7 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('/orders', OrderController::class);
 
         Route::apiResource('/costumer', CostumerController::class);
-        
+
         Route::middleware('role:admin,expedidor')->group(function () {
             Route::get('/shipments/available-orders', [ShipmentController::class, 'availableOrders']);
             Route::apiResource('/shipments', ShipmentController::class);
