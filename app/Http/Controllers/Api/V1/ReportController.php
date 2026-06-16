@@ -53,11 +53,12 @@ class ReportController extends Controller
     private function validateBaseFilters(Request $request): array
     {
         return $request->validate([
-            'date_from'   => ['sometimes', 'date'],
-            'date_to'     => ['sometimes', 'date', 'after_or_equal:date_from'],
-            'store_id'    => ['sometimes', 'integer', 'exists:stores,id'],
+            'search' => ['sometimes', 'string', 'max:255'],
+            'date_from' => ['sometimes', 'date'],
+            'date_to' => ['sometimes', 'date', 'after_or_equal:date_from'],
+            'store_id' => ['sometimes', 'integer', 'exists:stores,id'],
             'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
-            'format'      => ['sometimes', 'string', 'in:excel,pdf'],
+            'format' => ['sometimes', 'string', 'in:excel,pdf'],
         ]);
     }
 
@@ -141,21 +142,21 @@ class ReportController extends Controller
         return $this->success($data);
     }
 
-public function exportException(Request $request): mixed
-{
-    $filters = $this->validateBaseFilters($request);
-    $format = $request->input('format', 'excel');
-    $data = $this->exceptionService->generate($filters);
+    public function exportException(Request $request): mixed
+    {
+        $filters = $this->validateBaseFilters($request);
+        $format = $request->input('format', 'excel');
+        $data = $this->exceptionService->generate($filters);
 
 
-    return match($format) {
-        'pdf'=> $this->exportExceptionPdf($data, $filters),
-        default => Excel::download(
-            new ExceptionReportExport($data),  // agora recebe $data completo
-            'relatorio_excepcoes_' . now()->format('Ymd_His') . '.xlsx'
-        ),
-    };
-}
+        return match ($format) {
+            'pdf' => $this->exportExceptionPdf($data, $filters),
+            default => Excel::download(
+                new ExceptionReportExport($data),  // agora recebe $data completo
+                'relatorio_excepcoes_' . now()->format('Ymd_His') . '.xlsx'
+            ),
+        };
+    }
 
 
     private function exportExceptionPdf(array $data, array $filters): Response
