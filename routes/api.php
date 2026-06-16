@@ -21,7 +21,7 @@ use App\Http\Controllers\Api\V1\CostumerFileController;
 use App\Http\Controllers\Api\V1\OrdersRequestController;
 use App\Http\Controllers\Api\V1\FileController;
 use App\Http\Controllers\Api\V1\WhatsAppController;
-
+use App\Http\Controllers\Api\V1\ShipmentController;
 
 
 Route::prefix('v1')->group(function () {
@@ -36,24 +36,33 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.login');
 
-    Route::get('/order-statiscs', [OrderController::class, 'statisc']);
-
     Route::get('/tracking/{tracking}', [OrderController::class, 'tracking']);
 
-    Route::apiResource('/costumer', CostumerController::class);
     Route::post('/customer-request',       [CostumerController::class, 'store']);
     Route::post('/customer-file',          [CostumerFileController::class, 'store']);
-
-    Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
-    Route::apiResource('/orders', OrderController::class);
-
-    Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
-    Route::apiResource('/orders', OrderController::class);
 
     Route::post('/webhook/stripe', [InvoiceController::class, 'handleWebhook'])
         ->name('stripe.webhook')
         ->withoutMiddleware('throttle');
+
     Route::middleware(['auth:sanctum', 'active.user', 'audit.context'])->group(function () {
+
+        Route::get('/order-statiscs', [OrderController::class, 'statisc']);
+
+        Route::get('/orders/unsync', [OrderController::class, 'indexUnSync']);
+        Route::apiResource('/orders', OrderController::class);
+
+        Route::apiResource('/costumer', CostumerController::class);
+        
+        Route::middleware('role:admin,expedidor')->group(function () {
+            Route::get('/shipments/available-orders', [ShipmentController::class, 'availableOrders']);
+            Route::apiResource('/shipments', ShipmentController::class);
+
+            Route::post('/shipments/{id}/documents', [ShipmentController::class, 'uploadDocument']);
+            Route::delete('/shipments/{id}/documents/{fileId}', [ShipmentController::class, 'deleteDocument']);
+        });
+
+
 
         Route::post('/order-recivied', [WhatsAppController::class, 'orderRecivied']);
         Route::post('/payment-done', [WhatsAppController::class, 'paymentDone']);
@@ -61,6 +70,7 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('/auth/me',     [AuthController::class, 'me'])->name('auth.me');
+        Route::put('/auth/me',  [AuthController::class, 'updateMe'])->name('auth.update-me');
 
 
         Route::apiResource('/clients', ClientControler::class);
@@ -105,16 +115,17 @@ Route::prefix('v1')->group(function () {
             Route::get('audit-logs/{id}', [AuditLogController::class, 'show'])->name('audit-logs.show');
         });
 
-        // == Reports = admin and manager ==
+
+        Route::middleware('role:admin,Manager,contabilista')->prefix('reports')->group(function () {
+            Route::get('/financial',        [ReportController::class, 'financial'])->name('reports.financial');
+            Route::get('/financial/export', [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
+        });
+
         Route::middleware('role:admin,Manager')->prefix('reports')->group(function () {
-
-            Route::get('/financial',   [ReportController::class, 'financial'])->name('reports.financial');
-            Route::get('/operational',   [ReportController::class, 'operational'])->name('reports.operational');
-            Route::get('/exception',   [ReportController::class, 'exception'])->name('reports.exception');
-
-            Route::get('/financial/export',   [ReportController::class, 'exportFinancial'])->name('reports.financial.export');
+            Route::get('/operational',        [ReportController::class, 'operational'])->name('reports.operational');
+            Route::get('/exception',          [ReportController::class, 'exception'])->name('reports.exception');
             Route::get('/operational/export', [ReportController::class, 'exportOperational'])->name('reports.operational.export');
-            Route::get('/exception/export', [ReportController::class, 'exportException'])->name('reports.exception.export');
+            Route::get('/exception/export',   [ReportController::class, 'exportException'])->name('reports.exception.export');
         });
     });
 });
