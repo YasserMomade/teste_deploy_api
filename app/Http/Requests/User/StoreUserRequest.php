@@ -19,9 +19,14 @@ class StoreUserRequest extends FormRequest
             'name'       => ['required', 'string', 'max:255'],
             'lastname'   => ['required', 'string', 'max:255'],
             'phone'      => ['required', 'string', 'max:50'],
-            'email' => ['required', 'email:rfc', 'max:255', 'unique:users,email'],            'role'       => ['required', 'string', Rule::in(RoleEnum::values())],
+            'email' => ['required', 'email:rfc', 'max:255', 'unique:users,email'],
+            'role'       => ['required', 'string', Rule::in(RoleEnum::values())],
             'counter_id' => [
-                Rule::requiredIf(fn() => $this->input('role') !== RoleEnum::Admin->value),
+                Rule::requiredIf(fn() => !in_array($this->input('role'), [
+                    RoleEnum::Admin->value,
+                    RoleEnum::Expedidor->value,
+                    RoleEnum::Contabilista->value,
+                ])),
                 'nullable',
                 'integer',
                 'exists:counters,id',
@@ -30,9 +35,9 @@ class StoreUserRequest extends FormRequest
     }
 
     public function messages(): array
-    {
-        return [
-            'counter_id.required' => 'A counter is required for non-admin users.',
-        ];
-    }
+{
+    return [
+        'counter_id.required' => 'O balcão é obrigatório para este tipo de utilizador.',
+    ];
+}
 }
