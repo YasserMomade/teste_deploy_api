@@ -74,4 +74,34 @@ class ShipmentController extends Controller
             return $this->error($e->getMessage());
         }
     }
+
+    public function uploadDocument(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+        ]);
+
+        try {
+            $file = $this->shipmentService->uploadDocument(
+                $id,
+                $request->file('file'),
+                $request->user()?->id
+            );
+            return $this->created($file, 'Documento anexado com sucesso.');
+        } catch (\DomainException $e) {
+            return $this->error($e->getMessage(), 422);
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+    public function deleteDocument(string $id, string $fileId): JsonResponse
+    {
+        try {
+            $this->shipmentService->deleteDocument($id, $fileId);
+            return $this->success(null, 'Documento removido com sucesso.');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
 }
