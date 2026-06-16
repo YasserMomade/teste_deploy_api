@@ -170,7 +170,7 @@ public function update(UpdateClient $request, int $id): JsonResponse
                         $phone = '258' . $phone;
                     }
 
-                    $imageUrl = $order->file[0]->url;
+                    $imageUrl = $order->file[0]->url ?? false;
 
                     if (!$imageUrl) {
                         $imageUrl = 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
