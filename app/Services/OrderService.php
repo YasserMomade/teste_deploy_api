@@ -148,12 +148,12 @@ class OrderService
             ->sum('invoices.amountTo_pay');
 
 
-        return response()->json([
+        return [
             'total_orders' => $totalOrders,
             'total_weight' => $totalWeight,
             'total_Owd' => $totalOwd,
             'total_Charged' => $totalCharged,
-        ]);
+        ];
     }
 
     public function updateOrder(string $id, array $data): Order
