@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\CostumerService;
 use App\Services\OrderRequestService;
 use App\Services\FileCostumerService;
+use App\Services\WhatsAppService;
 use App\Traits\ApiResponse;
 use App\Http\Requests\Costumer\StoreCostumer;
 use Illuminate\Http\JsonResponse;
@@ -19,10 +20,11 @@ class CostumerController extends Controller
 
     protected $costumerService;
 
-    public function __construct(CostumerService $costumerService, OrderRequestService $orderRequestService)
+    public function __construct(CostumerService $costumerService, OrderRequestService $orderRequestService, WhatsAppService $whatsAppService)
     {
         $this->costumerService = $costumerService;
         $this->orderRequestService = $orderRequestService;
+        $this->whatsAppService = $whatsAppService;
     }
 
     public function index(Request $request): JsonResponse
@@ -60,6 +62,15 @@ class CostumerController extends Controller
                 ]);
             }
 
+            //whatsapp
+            $phone = $data['phone'];
+            $name = $data['name'];
+
+            $this->whatsAppService->sendDataSaved(
+                $phone,
+                $name
+            );
+                
             return $costumer;
         });
 
