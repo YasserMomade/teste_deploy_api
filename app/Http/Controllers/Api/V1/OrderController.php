@@ -63,6 +63,7 @@ class OrderController extends Controller
             $data = $request->validated();
 
             $clientId = null;
+            $sync = false;
 
             if (!empty($data['name']) && !empty($data['lastname'])) {
 
@@ -75,6 +76,11 @@ class OrderController extends Controller
 
             } else {
                 $clientId = $data['client_id'] ?? null;
+                $client =  $this->clientService->getClientById($clientId);
+
+                if(!empty($client->phone)) {
+                    $sync = true;
+                }
             }
 
             //
@@ -95,6 +101,7 @@ class OrderController extends Controller
                 "responsible_id" => $data['responsible_id'],
                 "invoice_id" => null,
                 "store_id" => $data['store_id'],
+                "sync" => $sync,
             ];
 
             $order = $this->orderService->createOrder($orderData);
@@ -131,6 +138,26 @@ class OrderController extends Controller
             $order->update([
                 'invoice_id' => $invoice->id
             ]);
+
+            //whatsapp
+            if(!empty($clientId)) {
+                $client =  $this->clientService->getClientById($clientId);
+
+                if($client && !empty($client->phone)  && !empty($client->name)) {
+                    $phone = $client->phone;
+                    $imageUrl = $order->file[0]->url ?? 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
+                    $tracking = $order->tracking;
+                    $clientName = $client->name;
+
+                    $this->whatsAppService->sendTrackingMessage(
+                        $phone,
+                        $imageUrl,
+                        $tracking,
+                        $tracking,
+                        $clientName
+                    );
+                }
+            }
 
             return $this->created([
                 'order' => $order,
@@ -228,11 +255,17 @@ class OrderController extends Controller
                 $order->load('client');
                 $phone = $order->client->phone;
                 $clientName = $order->client->name;
-                $imageUrl = $order->file[0]->url;
+                $imageUrl = $order->file[0]->url ?? false;
 
-                if (!$imageUrl) {
-                    $imageUrl = 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
-                }
+                $imageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+
+                $imageFile = collect($order->file)->first(function ($file) use ($imageExtensions) {
+                    $ext = strtolower(pathinfo(parse_url($file->url, PHP_URL_PATH), PATHINFO_EXTENSION));
+                    return in_array($ext, $imageExtensions);
+                });
+
+                $imageUrl = $imageFile->url ?? 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
+                
 
                 if ($existing->stripe_payment_link) {
                     $payment_link = $existing->stripe_payment_link;

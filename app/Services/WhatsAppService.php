@@ -29,7 +29,7 @@ class WhatsAppService
                 'to' => $phone,
                 'type' => 'template',
                 'template' => [
-                    'name' => 'tracking',
+                    'name' => 'tracking'    ,
                     'language' => [
                         'code' => 'en'
                     ],
@@ -110,7 +110,7 @@ class WhatsAppService
             'to' => $phone,
             'type' => 'template',
             'template' => [
-                'name' => 'order_ready_pickup_3',
+                'name' => 'order_pick_up',
                 'language' => [
                     'code' => 'en' 
                 ],
@@ -183,7 +183,7 @@ class WhatsAppService
             'to' => $phone,
             'type' => 'template',
             'template' => [
-                'name' => 'payment_confirmed_4',
+                'name' => 'payment_confirmed',
                 'language' => [
                     'code' => 'en' 
                 ],
@@ -198,6 +198,58 @@ class WhatsAppService
                             [
                                 'type' => 'text',
                                 'text' => $pick_up_code
+                            ]
+                        ]
+                    ]                                    
+                ],
+            ]
+        ];
+
+        $response = Http::withToken($this->token)
+            ->timeout(30)
+            ->connectTimeout(20)
+            ->post(
+                "https://graph.facebook.com/v25.0/{$this->phoneNumberId}/messages",
+                $payload
+            );
+
+        Log::error('WhatsApp API Error', [
+            'status'   => $response->status(),
+            'body'     => $response->json(),
+            'phone_id' => $this->phoneNumberId,
+        ]);
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                $response->json()['error']['message']
+                . ' | Code: ' . ($response->json()['error']['code'] ?? 'N/A')
+                . ' | Error subcode: ' . ($response->json()['error']['error_subcode'] ?? 'N/A')
+            );
+        }
+
+        return $response->json();
+    }
+
+    public function sendDataSaved(
+        string $phone,
+        string $name
+    ) {
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone,
+            'type' => 'template',
+            'template' => [
+                'name' => 'order_request_saved',
+                'language' => [
+                    'code' => 'en' 
+                ],
+                'components' => [
+                    [
+                        'type' => 'body',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => $name
                             ]
                         ]
                     ]                                    

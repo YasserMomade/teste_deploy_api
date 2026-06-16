@@ -25,7 +25,7 @@ class StoreCostumer extends FormRequest
         return [
             'name'     => 'required|string|max:255',
             'lastname' => 'required|string|min:2|max:255',
-            'phone'    => 'required|string|max:20',
+            'phone' => 'required|digits:9',
             'email'    => 'required|email',
 
             'orders_request'                  => 'required|array|min:1',

@@ -103,9 +103,6 @@ public function update(UpdateClient $request, int $id): JsonResponse
             $clientUpdated = $this->clientService->updateClient($client, $clientData);
             $responseData['client'] = $clientUpdated;
 
-            /**
-             * Caso exista mapa de ficheiros -> vai sincronizar
-             */
             if (!empty($data['file_order_map'])) {
 
                 $shouldSyncAndNotify = true;
@@ -128,9 +125,7 @@ public function update(UpdateClient $request, int $id): JsonResponse
                 }
             }
 
-            /**
-             * Caso exista costumer + orders selecionadas
-             */
+        
             if (!empty($data['id_costumer']) && !empty($data['id_selectedOrder'])) {
 
                 $shouldSyncAndNotify = true;
@@ -152,9 +147,7 @@ public function update(UpdateClient $request, int $id): JsonResponse
             }
         });
 
-        /**
-         * ENVIO WHATSAPP SÓ SE HOUVER SYNC REAL
-         */
+        
         if ($shouldSyncAndNotify && !empty($ordersToNotify)) {
 
             foreach (array_unique($ordersToNotify) as $orderId) {
@@ -171,13 +164,15 @@ public function update(UpdateClient $request, int $id): JsonResponse
                         $phone = '258' . $phone;
                     }
 
-                    $imageUrl = $order->file[0]->url ?? false;
+                    $imageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
 
-                    if (!$imageUrl) {
-                        $imageUrl = 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
-                    } 
+                    $imageFile = collect($order->file)->first(function ($file) use ($imageExtensions) {
+                        $ext = strtolower(pathinfo(parse_url($file->url, PHP_URL_PATH), PATHINFO_EXTENSION));
+                        return in_array($ext, $imageExtensions);
+                    });
 
-                    
+                    $imageUrl = $imageFile->url ?? 'https://www.portadordiario.co.mz/assets/img/services/services-national.png';
+                
 
                     $this->whatsAppService->sendTrackingMessage(
                         $phone,

@@ -23,7 +23,7 @@ class UpdateClient extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => 'sometimes|string|max:20',
+            'phone' => 'required|digits:9',
             'email' => 'sometimes|email',
             'name' => 'sometimes|string',
             'lastname' => 'sometimes|string',
