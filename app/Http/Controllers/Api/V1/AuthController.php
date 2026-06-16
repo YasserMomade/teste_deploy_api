@@ -126,6 +126,8 @@ class AuthController extends Controller
         $prefix = match ($role) {
             RoleEnum::Admin => 'ADM',
             RoleEnum::Manager => 'MGR',
+            RoleEnum::Expedidor => 'EXP',
+            RoleEnum::Contabilista => 'CTB',
         };
 
         do {

@@ -19,9 +19,9 @@ class UserService
             ->when(
                 isset($filters['search']),
                 fn($q) => $q->where('name', 'like', "%{$filters['search']}%")
-                            ->orWhere('lastname', 'like', "%{$filters['search']}%")
-                            ->orWhere('email', 'like', "%{$filters['search']}%")
-                            ->orWhere('user_code', 'like', "%{$filters['search']}%")
+                    ->orWhere('lastname', 'like', "%{$filters['search']}%")
+                    ->orWhere('email', 'like', "%{$filters['search']}%")
+                    ->orWhere('user_code', 'like', "%{$filters['search']}%")
             )
             ->when(
                 isset($filters['role']),
@@ -112,9 +112,11 @@ class UserService
 
     private function generateUserCode(RoleEnum $role): string
     {
-        $prefix = match($role) {
-            RoleEnum::Admin   => 'ADM',
+        $prefix = match ($role) {
+            RoleEnum::Admin => 'ADM',
             RoleEnum::Manager => 'MGR',
+            RoleEnum::Expedidor => 'EXP',
+            RoleEnum::Contabilista => 'CTB',
         };
 
         do {
