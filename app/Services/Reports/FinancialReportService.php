@@ -15,17 +15,17 @@ class FinancialReportService
             ->select('orders.*')
             ->with([
                 'client:id,name,lastname',
-               'invoice:id,amountTo_pay,amount_paid,payment_status,payment_method,referencie,paid_at,stripe_receipt_url',
+                'invoice:id,amountTo_pay,amount_paid,payment_status,payment_method,referencie,paid_at,stripe_receipt_url',
                 'responsible:id,name,lastname,user_code',
             ])->orderBy('orders.created_at', 'desc')
             ->get();
         return [
-            'summary'            => $this->buildSummary(clone $query),
+            'summary' => $this->buildSummary(clone $query),
             'by_payment_status'  => $this->groupByPaymentStatus(clone $query),
             'by_payment_method'  => $this->groupByPaymentMethod(clone $query),
-            'daily_totals'       => $this->getDailyTotals(clone $query),
-            'orders'             => $orders,
-            'filters_applied'    => $filters,
+            'daily_totals' => $this->getDailyTotals(clone $query),
+            'orders' => $orders,
+            'filters_applied' => $filters,
         ];
     }
 
@@ -52,12 +52,23 @@ class FinancialReportService
             ->when(
                 isset($filters['store_id']),
                 fn($q) => $q->where('orders.store_id', $filters['store_id'])
-            );
+            )
+            ->when(
+                isset($filters['search']),
+                fn($q) => $q->where(function ($sub) use ($filters) {
+                    $term = '%' . $filters['search'] . '%';
+                    $sub->where('invoices.referencie', 'like', $term)
+                        ->orWhereHas('client', function ($c) use ($term) {
+                            $c->where('name', 'like', $term)
+                                ->orWhere('lastname', 'like', $term);
+                        });
+                })
+            );;
     }
-   private function buildSummary($query): array
-{
-    $data = (clone $query)
-        ->selectRaw('
+    private function buildSummary($query): array
+    {
+        $data = (clone $query)
+            ->selectRaw('
             COUNT(*) as total_orders,
             SUM(invoices.amountTo_pay) as total_to_pay,
             SUM(invoices.amount_paid) as total_paid,
@@ -66,18 +77,18 @@ class FinancialReportService
             SUM(invoices.payment_status = "pendent") as total_pendent_orders,
             SUM(invoices.payment_status = "faild") as total_failed_orders
         ')
-        ->first();
+            ->first();
 
-    return [
-        "total_orders"         => (int) $data->total_orders,
-        "total_to_pay"         => round((float) $data->total_to_pay, 2),
-        "total_paid"           => round((float) $data->total_paid, 2),
-        "total_debt"           => round((float) $data->total_debt, 2),
-        "total_paid_orders"    => (int) $data->total_paid_orders,
-        "total_pendent_orders" => (int) $data->total_pendent_orders,
-        "total_failed_orders"  => (int) $data->total_failed_orders,
-    ];
-}
+        return [
+            "total_orders"         => (int) $data->total_orders,
+            "total_to_pay"         => round((float) $data->total_to_pay, 2),
+            "total_paid"           => round((float) $data->total_paid, 2),
+            "total_debt"           => round((float) $data->total_debt, 2),
+            "total_paid_orders"    => (int) $data->total_paid_orders,
+            "total_pendent_orders" => (int) $data->total_pendent_orders,
+            "total_failed_orders"  => (int) $data->total_failed_orders,
+        ];
+    }
 
     private function groupByPaymentStatus($query): array
     {
