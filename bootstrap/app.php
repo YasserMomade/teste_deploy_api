@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
  ->withMiddleware(function (Middleware $middleware) {
+    $middleware->redirectGuestsTo(fn () => null);
+
     $middleware->alias([
         'active.user' => \App\Http\Middleware\EnsureUserIsActive::class,
         'role' => \App\Http\Middleware\EnsureUserHasRole::class,
@@ -23,5 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ]);
 })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+        });
     })->create();
