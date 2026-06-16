@@ -35,4 +35,9 @@ class Shipment extends Model
     {
         return $this->belongsTo(User::class, 'responsible_id');
     }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(ShipmentFile::class);
+    }
 }
