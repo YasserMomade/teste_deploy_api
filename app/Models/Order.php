@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
@@ -24,7 +25,8 @@ use HasFactory;
 	    'category_id',
         'responsible_id',
         'invoice_id',
-        'store_id'
+        'store_id',
+        'shipment_id'
     ];
 
     protected function casts(): array
@@ -83,6 +85,11 @@ use HasFactory;
     public function file()
     {
         return $this->hasMany(File::class);
+    }
+
+    public function shipment()
+    {
+        return $this->belongsTo(Shipment::class);
     }
 
 }
