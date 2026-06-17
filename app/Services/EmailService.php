@@ -28,7 +28,7 @@ class EmailService
         $request = new SendTransacEmailRequest([
             'sender' => $sender,
             'to' => [new SendTransacEmailRequestToItem(['email' => $toEmail, 'name' => $toName])],
-            'subject' => 'Bem-vindo ao Portador Diário Sistema DROOP OFF - As suas credenciais de acesso',
+            'subject' => 'Bem-vindo ao Portador Diário Sistema DROP OFF - As suas credenciais de acesso',
             'htmlContent' => "
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                     <div style='background: #9B267C; padding: 30px; text-align: center;'>
