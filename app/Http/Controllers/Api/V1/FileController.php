@@ -26,7 +26,7 @@ class FileController extends Controller
     public function store(StoreFile $request)
     {
         try {
-            $cloudinary = new Cloudinary(env('CLOUDINARY_URL'));
+            $cloudinary = new Cloudinary(config('services.cloudinary.url'));
 
             $uploadedFile = $request->file('file');
 

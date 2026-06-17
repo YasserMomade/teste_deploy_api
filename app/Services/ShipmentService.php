@@ -98,7 +98,7 @@ class ShipmentService
             throw new \DomainException('Este envio já tem o máximo de 3 documentos.');
         }
 
-        $cloudinary = new Cloudinary(env('CLOUDINARY_URL'));
+        $cloudinary = new Cloudinary(config('services.cloudinary.url'));
 
         $result = $cloudinary->uploadApi()->upload(
             $file->getRealPath(),

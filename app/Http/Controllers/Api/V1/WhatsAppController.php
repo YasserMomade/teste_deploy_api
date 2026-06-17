@@ -28,7 +28,7 @@ class WhatsAppController extends Controller
         $phone        = '+258' . ltrim($order->client->phone, '0');
         $name         = $order->client->name;
         $trackingCode = $order->tracking_code;
-        $trackingUrl  = 'http://localhost:5173/landingPage';
+        $trackingUrl  = config('app.frontend_url') . '/landingPage';
         $imageUrl     = asset('images/encomenda.jpg');
 
         $this->whatsappService->sendPaymentLink( 
