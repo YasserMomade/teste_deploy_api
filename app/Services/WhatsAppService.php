@@ -103,7 +103,7 @@ class WhatsAppService
         string $payment_link
     ) {
 
-        $clean_link = ltrim(str_replace('https://buy.stripe.com', '', $payment_link), '/');
+        $clean_link = ltrim(str_replace('https://pay.portadordiario.co', '', $payment_link), '/');
 
         $payload = [
             'messaging_product' => 'whatsapp',
